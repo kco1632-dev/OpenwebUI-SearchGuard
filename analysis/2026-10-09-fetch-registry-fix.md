@@ -182,3 +182,62 @@ The fix was reproduced live with the same duplicate → suspension → search �
 ## Scope
 
 This record covers only the fetch execution-registry bug. It does not establish conclusions about DDGS search quality, Bonsai2 query planning, Web Loader quality, or other SearchGuard behavior.
+
+
+## Redirect → duplicate regression test — 2026-10-09
+
+### Purpose
+
+Verify that a 301 redirect target is treated as a distinct fetch target rather than as a duplicate of the original URL, and that the target is not blocked by fetch suspension.
+
+### Test URLs
+
+- Original: https://www.toyota-global.com/ja/about-toyota/company-information/officers/
+- Redirect target: https://global.toyota/en/about-toyota/company-information/officers/
+
+### Confirmed SearchGuard results
+
+For the original URL:
+
+```text
+decision=PASS
+duplicate=False
+reason=user-explicit-url
+url='https://www.toyota-global.com/ja/about-toyota/company-information/officers'
+FETCH_RESULT_DIAG status_code=- url='https://www.toyota-global.com/ja/about-toyota/company-information/officers/'
+fetch_suspended=NO
+```
+
+For the redirect target:
+
+```text
+decision=PASS
+duplicate=False
+reason=url-not-in-search-results
+url='https://global.toyota/en/about-toyota/company-information/officers'
+FETCH_RESULT_DIAG status_code=- url='https://global.toyota/en/about-toyota/company-information/officers/'
+fetch_suspended=NO
+```
+
+Thus, in this live run, the redirect target was not classified as a duplicate and was not blocked by fetch_suspended.
+
+### HTTP result at the target
+
+The Open WebUI service log independently recorded two GETs to the redirect target, both returning HTTP 404:
+
+```text
+GET /en/about-toyota/company-information/officers/ HTTP/1.1" 404 4658
+GET /en/about-toyota/company-information/officers/ HTTP/1.1" 404 4658
+```
+
+SearchGuard also recorded a FETCH_RESULT_DIAG with class=BODY and chars=632 for the target. Therefore the target fetch reached body-processing, but the requested Toyota officers page itself was not found.
+
+### Conclusion
+
+**Redirect → duplicate regression test: PASS for SearchGuard duplicate/suspension handling.**
+
+The redirect target was accepted as a new, distinct fetch and remained outside duplicate suspension. The remaining issue in this test is source/URL validity: the redirect target returned HTTP 404. This does not indicate a SearchGuard duplicate bug.
+
+### Test limitation
+
+The model unexpectedly issued two search_web calls despite the intended fetch-only test instruction. Therefore this run validates the observed redirect-target handling, but is not a clean fetch-only regression test.
