@@ -58,7 +58,7 @@ There was no corresponding restoration of `metadata["tools"]["fetch_url"]` when 
 
 ## Minimal fix
 
-In `guard0825-fix-candidate.py`, only the suspension-specific metadata removal above was removed.
+In `guard0825.py`, only the suspension-specific metadata removal above was removed.
 
 The normal fetch-quota closure remains:
 
