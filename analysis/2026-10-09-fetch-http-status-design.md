@@ -126,3 +126,29 @@ Checking only the initial `requests` probe is insufficient for redirects. The pr
 - Duplicate-fetch suspension and recovery tests remain unchanged and pass.
 
 This section is a source-based proposal only. No implementation or live-system changes were made.
+
+
+## 9. Compatibility review: SafeWebBaseLoader response handling
+
+Reviewed `backend/open_webui/retrieval/web/utils.py` at Open WebUI v0.11.4.
+
+Confirmed:
+- The synchronous `SafeWebBaseLoader.lazy_load()` receives a concrete `requests.Response` in a `with self.session.get(...)` block.
+- It checks `raise_for_status` only when the flag is true; the default is false.
+- It currently passes `response.text` and the requested `path` into `_document_from_html()`, which creates a Document with `extract_metadata(soup, url)`.
+- `extract_metadata()` currently records page title/description/language and `source`, but not HTTP status.
+- `lazy_load()` catches exceptions and logs them rather than propagating them. Therefore simply setting `raise_for_status=True` may turn an HTTP error into a missing document/empty content rather than a clear native-tool error. This behavior must not be mistaken for reliable status propagation.
+- The async path `_fetch()` currently returns only response text, and `alazy_load()` builds Documents from that text. A metadata-only change to the synchronous path would not automatically cover the async path.
+- The retrieval source search identified direct `get_content_from_url()` callers in `builtin.py` and `routers/retrieval.py`. The shared return shape is `(content, docs)`; preserve it for the narrow proposal.
+
+Updated narrow prototype idea:
+1. For the synchronous loader path actually used by `get_content_from_url()`, pass the exact `response.status_code` (and preferably `response.url`) into the Document metadata while still inside the response context.
+2. In `fetch_url()`, inspect returned docs for status metadata and emit a structured error only when the status metadata is explicit and 400–599. Keep the shared `get_content_from_url()` tuple shape unchanged.
+3. Ensure loader exceptions or no-doc results become explicit errors in `fetch_url()` rather than ordinary empty success, without changing URL import/RAG behavior unintentionally.
+4. Before implementation, inspect the remaining `get_content_from_url()` call sites and loader-engine dispatch. If an alternative configured loader is used, status availability must be treated as unknown unless that loader explicitly supplies it.
+5. Add tests for final redirected 404, normal 200, no document / loader exception, and a second loader engine. Test whether status metadata is safe for all consumers of the Document metadata.
+
+Assessment:
+- This approach appears technically feasible for the deployed SafeWebBaseLoader path because it has access to the exact response that supplies the parsed body.
+- It is not yet a complete universal solution for every loader engine, async loader path, or non-HTTP source.
+- No source code was changed; this remains a proposal only.
