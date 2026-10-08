@@ -1,7 +1,7 @@
 """
 title: Bonsai2 Web Search Guard
 author: local
-version: 0.8.25
+version: 0.8.25-fix
 description: >
     Limit web-search tools on Bonsai2 (successful calls only consume quota),
     force a first search for current queries, preserve user terms (audit /
@@ -21,6 +21,15 @@ description: >
       - duplicate fetch prevention
       - non-error Guard results for blocked/duplicate fetches
       - temporary fetch suspension after duplicate fetch attempts
+
+0.8.25-fix change:
+    Minimal bug fix: during duplicate-fetch suspension, keep
+    metadata["tools"]["fetch_url"] intact. body["tools"] alone hides
+    fetch_url from the model while suspended. This prevents a stale
+    execution registry after suspension is cleared, where body["tools"]
+    contains fetch_url but metadata["tools"] does not, causing
+    Open WebUI's "Tool \"fetch_url\" not found" error.
+    No other behavior is changed.
 
 0.8.25 change:
     DIAGNOSTIC ONLY. No behavior change.
@@ -5127,11 +5136,6 @@ missing and that further research is possible if the user asks for it
                     None,
                 )
 
-            if state.get("fetch_suspended") and not fetch_gate_test_request:
-                metadata_tools.pop(
-                    "fetch_url",
-                    None,
-                )
 
         # 0.8.25: direct observation of the post-duplicate suspension state.
         if state.get("fetch_suspended"):
