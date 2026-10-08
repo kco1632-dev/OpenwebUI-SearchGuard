@@ -152,3 +152,17 @@ Assessment:
 - This approach appears technically feasible for the deployed SafeWebBaseLoader path because it has access to the exact response that supplies the parsed body.
 - It is not yet a complete universal solution for every loader engine, async loader path, or non-HTTP source.
 - No source code was changed; this remains a proposal only.
+
+
+## 10. Additional compatibility caveat and call-site correction
+
+A more detailed source review found an important caveat:
+- `SafeWebBaseLoader.lazy_load()` catches exceptions, logs them, and does not re-raise them. Therefore enabling `raise_for_status` alone is not a reliable fix; it can result in no Document being yielded. The native `fetch_url()` must explicitly handle an empty/no-document result if the chosen design relies on this loader.
+- The sync loader has the exact `requests.Response` object and can add `response.status_code` and `response.url` to the metadata created for that response. This is the clearest place to preserve status/body association for the currently observed synchronous loader.
+- The async `SafeWebBaseLoader` path returns only response text and builds Documents afterward; it would need separate treatment if the fetch flow were ever changed to use it.
+- A search of the v0.11.4 source found direct `get_content_from_url()` call sites in `backend/open_webui/tools/builtin.py` and `backend/open_webui/routers/retrieval.py`. The earlier mention of a direct middleware call site is not confirmed by this search and should not be treated as a verified call site.
+
+Revised status:
+- Feasibility for the currently observed synchronous SafeWebBaseLoader: plausible, because the exact response object is available at document creation time.
+- Universal support for all loader engines and all paths: not established.
+- Before implementation: verify the configured loader engine dispatch, metadata consumers, and no-document/error handling; then patch only on an isolated branch and run tests. No live change is authorized or performed.
