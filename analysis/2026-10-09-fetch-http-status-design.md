@@ -87,3 +87,42 @@ Before coding, inspect every call site of `get_content_from_url()` and the suppo
 ## 7. Change boundary
 
 This memo records analysis and test requirements only. No source file, live configuration, service, or runtime behavior has been changed. No implementation approach is approved yet.
+
+
+## 8. Call-site review and narrower implementation candidate
+
+Reviewed Open WebUI v0.11.4 call sites of `get_content_from_url()`:
+- Built-in `fetch_url()` in `backend/open_webui/tools/builtin.py`.
+- URL processing/import in `backend/open_webui/routers/retrieval.py`.
+- URL context handling in `backend/open_webui/utils/middleware.py` (the source search also found this call site).
+
+The shared function returns a `(content, docs)` pair and is used beyond the native fetch tool. Changing that tuple contract is not recommended.
+
+### Candidate to prototype first
+
+1. In `SafeWebBaseLoader`, preserve the HTTP response status in each produced Document's metadata, sourced from the same response whose body is parsed. This is narrower than changing the shared retrieval return contract, although it adds metadata for every caller using this loader.
+2. In built-in `fetch_url()`, inspect the returned documents' status metadata. If any applicable final response status is 400 or higher, return a stable structured error result instead of ordinary page text. Do not include the error-page body as a successful fetch result.
+3. In SearchGuard, recognize that structured error envelope and exclude that tool call from successful-fetch accounting.
+4. Keep normal 2xx content unchanged. Do not infer the final response status from the earlier SSRF/content-type probe.
+5. If a loader path cannot provide status metadata, do not pretend status is known. Define and test an explicit fallback behavior.
+
+Why this is only a candidate:
+- Confirm that `SafeWebBaseLoader` is used for the native fetch tool in the deployed configuration (runtime logs currently show it is).
+- Confirm how the loader represents redirects and multiple Documents, and whether status metadata can be added without breaking document metadata consumers.
+- Inspect the middleware call site before changing shared behavior; verify the extra metadata is benign.
+- Some alternative loaders may not expose response status using the same interface. Those paths need an explicit compatibility decision rather than guessed status.
+
+### Important correction to the simplest proposal
+
+Checking only the initial `requests` probe is insufficient for redirects. The probe deliberately avoids following redirects for SSRF safety, while the loader can follow the URL separately. A redirect target can return 404 even when the original URL probe returned a 3xx. The status used for accounting must therefore come from the loader response that supplied the returned body, not from the probe.
+
+### Prototype acceptance criteria
+
+- A redirected final 404 is returned as an explicit fetch error and does not consume successful-fetch quota.
+- A 200 response returns ordinary extracted content and consumes quota once.
+- A 404 status is never guessed from page text.
+- Existing `get_content_from_url()` return shape remains `(content, docs)`.
+- URL import/RAG and middleware context paths continue to operate with the added metadata.
+- Duplicate-fetch suspension and recovery tests remain unchanged and pass.
+
+This section is a source-based proposal only. No implementation or live-system changes were made.
