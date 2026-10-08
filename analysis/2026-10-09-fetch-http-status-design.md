@@ -166,3 +166,29 @@ Revised status:
 - Feasibility for the currently observed synchronous SafeWebBaseLoader: plausible, because the exact response object is available at document creation time.
 - Universal support for all loader engines and all paths: not established.
 - Before implementation: verify the configured loader engine dispatch, metadata consumers, and no-document/error handling; then patch only on an isolated branch and run tests. No live change is authorized or performed.
+
+
+## 11. Loader-engine dispatch and fetch_url empty-result behavior
+
+Further v0.11.4 source inspection confirmed the following.
+
+### Loader-engine dispatch
+`get_web_loader()` chooses among `safe_web` (also selected when engine is empty), `playwright`, `firecrawl`, `tavily`, `microsoft_web_iq`, and `external`. These engines do not share a guaranteed HTTP response object or status metadata contract. The runtime log from the observed test said `Using WEB_LOADER_ENGINE SafeWebBaseLoader`, so the proposed response-status metadata is specifically viable for that confirmed path, not automatically for all engines.
+
+### Existing fetch_url behavior for missing content
+`fetch_url()` currently gets `content, _` from `get_content_from_url()`. If content is `None`, it converts it to an empty string and returns it as a normal tool result. If the loader returns an empty list of Documents, `get_content_from_url()` can likewise produce an empty content string. This means a loader failure that does not raise all the way to `fetch_url()` can be indistinguishable from an empty successful page. The narrow fix must handle this carefully; treating every empty body as a failure could incorrectly reject legitimate empty pages.
+
+### Guard behavior
+`_count_successful()` excludes tool results only when `_tool_result_is_error()` recognizes an error or when the result carries Guard actions `blocked` / `duplicate`. Explicit status extraction exists separately, but the success counter does not use it to exclude a call. Therefore the status must reach the tool result in a structured form and be recognized by the error classifier; diagnostics alone do not change quota accounting.
+
+### Revised recommendation
+For the presently observed `SafeWebBaseLoader` path, the least invasive candidate remains:
+- Add response status metadata at the point where `SafeWebBaseLoader.lazy_load()` builds the Document from that exact response.
+- Have `fetch_url()` return a structured error envelope for an explicit 4xx/5xx status in returned Document metadata.
+- Update SearchGuard's error classifier to recognize that envelope, preserving current success counting for normal 2xx pages.
+- Treat no-Document/empty-content as a separate ambiguity; do not blanket-classify all empty bodies as failures without a regression test.
+- Either limit the initial implementation explicitly to the confirmed `safe_web` engine or define and test an explicit status contract for every supported engine before claiming general support.
+
+The retrieval router consumes the same `(content, docs)` pair for URL import/RAG processing, so status-specific behavior should remain in `fetch_url()` where possible. The shared tuple contract should not change in this proposal.
+
+No Open WebUI source, live service, or SearchGuard runtime code was changed.
