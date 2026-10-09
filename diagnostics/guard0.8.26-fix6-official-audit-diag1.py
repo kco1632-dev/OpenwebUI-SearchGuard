@@ -927,7 +927,7 @@ def _classify_official_search_result(entity: str, evidence: str) -> str:
 
 
 def _official_search_outcome_needs_recovery(outcome: dict) -> bool:
-    """Preserve legacy status and retry official queries lacking a candidate."""
+    """Retry official-site requests unless independent evidence confirms them."""
     if not isinstance(outcome, dict):
         return False
     status = outcome.get("status")
@@ -935,8 +935,8 @@ def _official_search_outcome_needs_recovery(outcome: dict) -> bool:
         return True
     return bool(
         outcome.get("official_intent")
-        and outcome.get("official_status") == "OFFICIAL_UNCONFIRMED"
         and status in {"ok", "NO_RESULTS"}
+        and outcome.get("official_confirmed") is not True
     )
 
 # Adjacent Latin name tokens: "Rakuten Hand 5G", "Galaxy S24 Ultra", ...
