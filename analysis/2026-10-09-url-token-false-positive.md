@@ -51,4 +51,4 @@ All seven test cases returned `ok`, including both new cases using the full live
 1. Existing query `カティサーク 公式サイト` remained unchanged; `URL` and `Open WebUI` were not injected; `info["changed"] == False`.
 2. Query `公式サイト` was repaired to include `カティサーク`, without injecting `URL` or `Open WebUI`; `info["changed"] == True`.
 
-This validates the focused regression cases only. Numeric-conflict behavior and broader query-candidate edge cases have not yet been re-run against fix3. The candidate is not yet verified in a live Open WebUI search and has not been reported as deployed. Do not infer overall correctness or deploy from this seven-test result alone.
+This run validated the seven tests present at that time. Afterward, an eighth test was added for numeric-conflict preservation (`2500mAh → 2630mAh`) when the user prompt also asks for result titles and URL. **The updated eight-test suite has not yet been run on G14.** Broader query-candidate edge cases and live Open WebUI behavior also remain unverified. The candidate has not been reported as deployed. Do not infer overall correctness or deploy from the earlier seven-test result alone.
