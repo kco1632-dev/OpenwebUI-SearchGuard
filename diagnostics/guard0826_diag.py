@@ -5056,6 +5056,50 @@ missing and that further research is possible if the user asks for it
             f"has_site={diag_has_site}"
         )
 
+        # Diagnostic only: compare selected text with a fresh extraction.
+        # Never log either text value.
+        try:
+            request_messages = list(
+                body.get(
+                    "messages",
+                    [],
+                )
+                or []
+            )
+
+            request_message_id = (
+                metadata.get("message_id")
+                or body.get("message_id")
+            )
+
+            body_user_text = self._extract_user_text_from_messages(
+                request_messages,
+                request_message_id,
+            )
+
+            selected_has_replacement = "\ufffd" in user_text
+            body_has_replacement = "\ufffd" in body_user_text
+            selected_has_site = "サイト" in user_text
+            body_has_site = "サイト" in body_user_text
+
+            print(
+                "[Bonsai2 Web Search Guard] TEXT_BOUNDARY_COMPARE "
+                f"msg={state_key} "
+                f"selected_chars={len(user_text)} "
+                f"body_chars={len(body_user_text)} "
+                f"selected_has_replacement={selected_has_replacement} "
+                f"body_has_replacement={body_has_replacement} "
+                f"selected_has_site={selected_has_site} "
+                f"body_has_site={body_has_site} "
+                f"exact_match={user_text == body_user_text}"
+            )
+        except Exception as exc:
+            print(
+                "[Bonsai2 Web Search Guard] TEXT_BOUNDARY_COMPARE "
+                f"msg={state_key} "
+                f"error={type(exc).__name__}"
+            )
+
         if user_text:
             self._audit_user_text[state_key] = user_text
 
