@@ -91,11 +91,11 @@ Relevant observed lines for `msg=2bf77508-ef98-455e-91be-30795dd5e84c`:
 Next focused regression should preserve the full real user prompt (including the request to show titles and URLs) and assert that `repair_query()` does not inject `URL` when the intended target is already present. Do not adjust unrelated Guard behavior or repeat the live search until this narrow candidate-selection issue is addressed.
 
 
-## Follow-up candidate for false-positive `URL` repair (2026-10-09)
+## fix3 verification update (2026-10-09)
 
-A separate branch, `analysis/searchguard-2026-10-09-url-token-regressionfix`, now contains a `0.8.26-fix3` candidate and two additional regression tests using the full live prompt. The tests expect no injection of `URL` when `カティサーク 公式サイト` is already correct, and expect only the Japanese target to be restored when it is missing. Seven tests total; **G14 focused run passed 7/7 with `TEST_EXIT_CODE=0`** on 2026-10-09. Numeric-conflict tests and live Open WebUI behavior remain unverified. Details: [url-token false-positive report](2026-10-09-url-token-false-positive.md).
-
-
-## Numeric-conflict preservation test added after the 7/7 run (2026-10-09)
-
-After the seven-case run, an eighth fix3 test was added for numeric-conflict preservation (`2500mAh → 2630mAh`) when the prompt also requests titles and URL. The user then ran the updated eight-test suite on G14: all eight tests returned `ok`, the summary was `Ran 8 tests in 0.004s` / `OK`, and `TEST_EXIT_CODE=0`. The numeric-conflict test passed without injecting `URL`. The 23-case strict regression suite, four-case audit-semantics suite, broader boundary variations, and live Open WebUI behavior remain unverified.
+- Candidate branch: `analysis/searchguard-2026-10-09-url-token-regressionfix`
+- G14 focused tests: **8/8 passed**, including URL-injection regression and numeric conflict (`2500mAh → 2630mAh`).
+- G14 extended reconstructed suite: **35/35 passed** in `0.012s`; final output `OK`, `TEST_EXIT_CODE=0`.
+- The 23 query-repair and 4 audit-semantic modules are reconstructed from documented behavior categories, not the unavailable original historical test source. The audit-semantic tests do not exercise Filter.request() or prove runtime logging.
+- **Still unverified:** live Open WebUI search using fix3. The user has not reported fix3 as deployed. Fix3 remains an isolated candidate; do not infer deployment status or live behavior from unit tests.
+- Details: [URL false-positive report](2026-10-09-url-token-false-positive.md).
