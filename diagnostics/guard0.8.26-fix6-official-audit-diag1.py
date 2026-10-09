@@ -27,8 +27,9 @@ description: >
     For explicit official-site requests, label result items as
     OFFICIAL_CANDIDATE / OFFICIAL_UNCONFIRMED / ENTITY_MISSING. Search-result
     wording is candidate evidence only; no search result alone is marked
-    OFFICIAL_CONFIRMED. If no candidate is seen, the existing one-shot
-    recovery may run even when the entity name was present.
+    OFFICIAL_CONFIRMED. The existing one-shot recovery may run whenever
+    officiality remains unconfirmed, including weak candidates and results
+    that mention the entity but do not independently verify the publisher.
 
     Add an official-site verification note: snippets and third-party mentions
     do not verify publisher identity; inspect fetched page content, and report
