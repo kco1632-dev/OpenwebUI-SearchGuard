@@ -73,8 +73,13 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
             ),
             "OFFICIAL_CANDIDATE",
         )
-        # A marker in a search title/snippet is still not enough to confirm.
-        self.assertFalse(GUARD._has_official_site_marker("") is False and False)
+        # The search-audit contract never returns a confirmed state.
+        self.assertNotEqual(
+            GUARD._classify_official_search_result(
+                "カティサーク", "カティサーク公式サイトはこちら"
+            ),
+            "OFFICIAL_CONFIRMED",
+        )
 
     def test_result_without_the_requested_entity_is_missing(self):
         self.assertEqual(
