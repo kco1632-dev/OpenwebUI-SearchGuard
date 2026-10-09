@@ -86,14 +86,16 @@ A reproducible test module is now stored in the candidate branch:
 
 The repository previously recorded the 23 strict cases and 4 audit-semantic checks, but did not contain their runnable test source. This new module focuses only on the suspected candidate-selection regression and its audit-facing changed flag. It imports the candidate module directly and does not call Open WebUI, DDGS, or any network service.
 
-Cases:
+Cases in the original 4-case version:
 
-1. Unmarked, unrelated quoted English term alongside an implicit Japanese target: target must be repaired into the query and unrelated term must not be injected.
+1. Unmarked, unrelated quoted English term after an implicit Japanese target: target must be repaired into the query and unrelated term must not be injected.
 2. Query already contains the Japanese target: repair must leave it unchanged and report changed=False.
 3. Explicit target marker: target must be selected without unrelated quoted term.
 4. Explicit example marker: example quote must not be injected.
 
-The first two cases are specifically intended to detect the suspected failure mode. The test module has been committed to this branch, but has **not yet been executed against the user's G14 Python environment**. Do not record these cases as pass/fail until the test output is returned.
+The user executed that original 4-case version against the original candidate branch; the results are recorded below (2 failures, 2 passes). For the separate fix2 branch, a fifth case was added in which the unrelated quote appears before the Japanese target.
+
+The current 5-case test file on the fix2 branch has **not yet been executed** against the user's G14 Python environment. Do not record it as passing until the new branch's test output is returned.
 
 ## Live reproduction of candidate-selection regression (2026-10-09)
 
