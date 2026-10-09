@@ -1,4 +1,4 @@
-"""Focused regression tests for SearchGuard 0.8.26-fix3 query candidate selection.
+"""Focused regression tests for SearchGuard 0.8.26-fix4 query candidate selection.
 
 Run from this directory with:
     python -m unittest -v test_query_candidate_selection_0826.py
@@ -168,6 +168,25 @@ class QueryCandidateSelection0826Tests(unittest.TestCase):
             repaired,
             "Output-format instructions must not become a search entity.",
         )
+        self.assertTrue(info["changed"])
+
+
+    def test_distinct_japanese_targets_before_different_property_boundaries_are_both_preserved(self):
+        user_text = (
+            "カティサークの公式サイトとバランタインの価格を確認してください。"
+            "検索結果のタイトルとURLを示してください。"
+        )
+        model_query = "公式サイト 価格"
+
+        repaired, info = repair_query(user_text, model_query)
+
+        self.assertIn("カティサーク", repaired)
+        self.assertIn(
+            "バランタイン",
+            repaired,
+            "A later Japanese target must survive the second property boundary.",
+        )
+        self.assertNotIn("URL", repaired)
         self.assertTrue(info["changed"])
 
 
