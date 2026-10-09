@@ -46,7 +46,7 @@ The private `for-chatgpt` GitHub Actions workspace runs the prior six recovery-q
 
 - Recovery tests: 6/6 pass.
 - Official-audit tests: 10/10 pass.
-- Combined run: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37997590359/job/114047473013
+- Combined run: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37997670470/job/114047741587
 
 The audit fixtures cover entity-only results, explicit official wording on a third-party article, missing target, official-intent recognition, recovery decisions, preservation of ordinary `ok` behavior, note idempotence/removal, and numeric correction. These are code-level tests, not live search or domain-ownership verification.
 
