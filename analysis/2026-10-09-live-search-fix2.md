@@ -94,3 +94,8 @@ Next focused regression should preserve the full real user prompt (including the
 ## Follow-up candidate for false-positive `URL` repair (2026-10-09)
 
 A separate branch, `analysis/searchguard-2026-10-09-url-token-regressionfix`, now contains a `0.8.26-fix3` candidate and two additional regression tests using the full live prompt. The tests expect no injection of `URL` when `カティサーク 公式サイト` is already correct, and expect only the Japanese target to be restored when it is missing. Seven tests total; **G14 focused run passed 7/7 with `TEST_EXIT_CODE=0`** on 2026-10-09. Numeric-conflict tests and live Open WebUI behavior remain unverified. Details: [url-token false-positive report](2026-10-09-url-token-false-positive.md).
+
+
+## Numeric-conflict preservation test added after the 7/7 run (2026-10-09)
+
+After the seven-case G14 run passed, an eighth test was added to the fix3 branch. It checks that a prompt about `RTX 2060` whose requested capacity is `2630mAh` still replaces a generated `2500mAh` with `2630mAh`, while not injecting the output-format term `URL`. This is based on numeric behavior documented for the existing repair logic. **The updated 8-test suite has not yet been run on G14; do not count this eighth case as passed.** The earlier seven-test result remains valid for the version then tested.
