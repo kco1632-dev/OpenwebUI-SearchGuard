@@ -37,4 +37,18 @@ The previous five regression cases are retained, making seven cases total.
 
 ## Verification status
 
-**Not yet run on G14.** The patch and tests have been committed to this separate branch and read back from GitHub. No Python test was executed by the assistant. The user should run the seven-test suite against this branch before considering any further Function update. Do not infer that fix3 works from the code change alone; live Open WebUI verification remains separate.
+**G14 focused tests: PASS (2026-10-09).** The user ran the seven-test suite with the Open WebUI virtual environment:
+
+```
+Ran 7 tests in 0.005s
+
+OK
+TEST_EXIT_CODE=0
+```
+
+All seven test cases returned `ok`, including both new cases using the full live prompt:
+
+1. Existing query `カティサーク 公式サイト` remained unchanged; `URL` and `Open WebUI` were not injected; `info["changed"] == False`.
+2. Query `公式サイト` was repaired to include `カティサーク`, without injecting `URL` or `Open WebUI`; `info["changed"] == True`.
+
+This validates the focused regression cases only. Numeric-conflict behavior and broader query-candidate edge cases have not yet been re-run against fix3. The candidate is not yet verified in a live Open WebUI search and has not been reported as deployed. Do not infer overall correctness or deploy from this seven-test result alone.
