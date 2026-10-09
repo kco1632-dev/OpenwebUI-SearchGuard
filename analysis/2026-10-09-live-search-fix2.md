@@ -64,3 +64,28 @@ User-reported PowerShell inventory:
 The active `OpenWebUIService.out.log` is the priority source based on its update time. The bounded 16 MiB scan of its tail found no matching lines under the previous combined prefix/event-name/term filter. This is not evidence that the Guard failed to run or never logged; the filter may have been too narrow, the relevant event may not be in the scanned window, or the output may be routed elsewhere.
 
 Next: stream a bounded tail of the active out log and capture recent `[Bonsai2 Web Search Guard]` lines without requiring the target text to appear. Continue to avoid loading the full multi-gigabyte file into memory.
+
+## Runtime diagnostic lines found in the bounded tail (2026-10-09)
+
+The user's subsequent 16 MiB tail scan found Guard-prefixed lines. The relevant request/message ID is `2bf77508-ef98-455e-91be-30795dd5e84c`; the nearby `msg=58ad5258-54ea-4006-b74f-855884c1dc00` lines concern a different request and include a fetch, so they are not evidence that the current search-only test fetched a page.
+
+Relevant observed lines for `msg=2bf77508-ef98-455e-91be-30795dd5e84c`:
+
+- `STREAM`: native call observed as `search_web({"query":"カティサーク 公式サイト","count":5})` (Japanese characters were displayed as mojibake in the PowerShell output).
+- `STREAM_QUERY_AUDIT`: `status=VIOLATION`, with `missing=['URL']`.
+- `QUERY_REPAIR`: logged a change that prepended `URL` to the query, with `missing=['URL']`.
+- `SEARCH_RESULT_AUDIT`: `status=ok`, main entity found, `results=5`.
+- `FETCH_GATE_SOURCE`: parsed the five search results successfully; target entity included; `urls=5 ok=5 suspect=0`.
+- `QUERY_AUDIT`: still reported `VIOLATION` for the original logged query with `missing=['URL']`.
+- Per-hop summary: `search_web=1/2`, `fetch_url=0/2`, `turns=1/4`; final `STREAM` for this message finished with `stop`.
+
+## Updated assessment
+
+- **Confirmed:** runtime query audit and repair diagnostic paths executed for this request. This resolves the earlier question of whether these diagnostic strings were merely present in source; these are actual Guard-prefixed runtime lines.
+- **Confirmed:** the repair selected `URL` as a missing term even though the intended Japanese target was already present in the displayed query. The query audit therefore stayed at `VIOLATION`.
+- **Likely code-level explanation:** the user's instruction included the uppercase token `URL` in the phrase asking for search result titles and URLs. The current implicit-target candidate logic still scans strong uppercase Latin candidates across broad user text, so `URL` can be selected as a required query term. This appears to be a separate candidate-selection false positive not covered by the current five tests.
+- **Search result outcome:** the user-provided tool result contained five items, including the Asahi Beer Cutty Sark product page. `SEARCH_RESULT_AUDIT status=ok` logged that the target was found.
+- **Fetch behavior for the relevant request:** the per-hop summary records `fetch_url=0/2`; no fetch call is shown for this message in the pasted lines. The fetch diagnostic lines with a different message ID must not be conflated with this request.
+- **Version caveat:** the user reported updating the registered Function to 0.8.26-fix2, but the pasted log lines do not themselves print the Function version. They prove the observed runtime paths, not the deployed version independently.
+
+Next focused regression should preserve the full real user prompt (including the request to show titles and URLs) and assert that `repair_query()` does not inject `URL` when the intended target is already present. Do not adjust unrelated Guard behavior or repeat the live search until this narrow candidate-selection issue is addressed.
