@@ -50,3 +50,17 @@ The user scanned the last 16 MiB of C:\\OpenWebUI\\OpenWebUIService.out.log usin
 - A separate PowerShell else error occurred because else was entered as a separate command after the if block had already executed. This did not affect the empty scan result.
 
 Next diagnostic action: inspect log file names, lengths, and last-write times to determine which current/rotated file covers the test time, then run a streaming, prefix-anchored query against the appropriate file(s). Do not infer execution from source-code string matches or absence of matches in one tail window.
+
+## Log-file inventory (2026-10-09, after live search)
+
+User-reported PowerShell inventory:
+
+- `OpenWebUIService.out.log`: 1,694,698,020 bytes; last write 2026-10-09 13:32:08.
+- `OpenWebUIService.err.log`: 17,524,277 bytes; last write 2026-10-09 11:43:17.
+- `OpenWebUIService.out.log.old`: 3,532,786,294 bytes; last write 2026-10-05 19:01:11.
+- `OpenWebUIService.err.log.old`: 17,514,249 bytes; last write 2026-10-05 17:28:57.
+- `log.txt`: 108,141 bytes; last write 2026-09-01 17:02:35.
+
+The active `OpenWebUIService.out.log` is the priority source based on its update time. The bounded 16 MiB scan of its tail found no matching lines under the previous combined prefix/event-name/term filter. This is not evidence that the Guard failed to run or never logged; the filter may have been too narrow, the relevant event may not be in the scanned window, or the output may be routed elsewhere.
+
+Next: stream a bounded tail of the active out log and capture recent `[Bonsai2 Web Search Guard]` lines without requiring the target text to appear. Continue to avoid loading the full multi-gigabyte file into memory.
