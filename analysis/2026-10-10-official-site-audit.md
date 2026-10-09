@@ -10,7 +10,7 @@ Date: 2026-10-10
 - Baseline blob SHA: `5c21e2173c82590a7189e5ec246fb24d7b91bc6c`
 - Candidate branch: `analysis/searchguard-2026-10-10-official-audit-fix`
 - Candidate file: `diagnostics/guard0.8.26-fix6-official-audit-diag1.py`
-- Candidate code blob SHA after audit/status-separation change: `04a5eb866eab87e4f34beacb49b0a4c3d191919e`
+- Candidate code blob SHA at initial audit separation: `04a5eb866eab87e4f34beacb49b0a4c3d191919e` (superseded; see latest SHA below)
 - Candidate source URL: https://github.com/kco1632-dev/OpenWebUI-SearchGuard/blob/analysis/searchguard-2026-10-10-official-audit-fix/diagnostics/guard0.8.26-fix6-official-audit-diag1.py
 
 The filename version, module `version` header, and changelog heading all use `0.8.26-fix6-official-audit-diag1`.
@@ -30,7 +30,7 @@ For user requests that explicitly ask for an official website/page/URL:
   - `OFFICIAL_UNCONFIRMED`: the entity was found but no explicit official-site wording was found in the result evidence.
   - `OFFICIAL_CANDIDATE`: the entity and explicit official-site wording both occur in that single result's evidence.
 - `SEARCH_RESULT_AUDIT` preserves the legacy `status=ok / VIOLATION / NO_RESULTS` meaning. It adds separate `entity_status`, `official_status`, `official_candidate_count`, and `official_confirmed` fields. A result being called a candidate does not promote it to confirmed.
-- If entity presence is adequate but official status remains `OFFICIAL_UNCONFIRMED`, the existing one-shot recovery can run. It can also run when an official-site request returns no results.
+- If officiality is not independently confirmed, the existing one-shot recovery can run even when the target entity is present or a weak `OFFICIAL_CANDIDATE` wording exists. It can also run when an official-site request returns no results. This remains bounded by existing search limits and the one-shot recovery flag.
 - An official-site verification system note tells the model that result titles/snippets and third-party mentions do not establish publisher identity; inspect fetched page content and explicitly state uncertainty instead of guessing when evidence is insufficient.
 - Ordinary non-official audits retain their legacy status. Successful-call quotas, turn limits, fetch wrappers/gates, duplicate prevention, and tool accounting are not changed.
 
@@ -70,9 +70,9 @@ The same test suite now explicitly asserts that:
 - a genuinely confirmed outcome, if a future verifier exists and explicitly returns `official_confirmed=True`, would not trigger recovery;
 - ordinary non-official searches keep legacy behavior.
 
-Updated code blob SHA after review: `e0923378edcdbea588a1c9116709564e66807970`.
+Updated code blob SHA after latest changelog alignment: `fa407343b7c5e181cb4d77e4fc2862778e3599e7`.
 Updated test blob SHA: `bbe369c11155448389de68ebbae52d1640675289`.
-Latest combined Actions run with the revised recovery test: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37998065212/job/114049059382
+Latest combined Actions run with the revised recovery test and final candidate revision: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37998240639/job/114049626440
 
 ## How far generic automatic official-site verification can go
 
