@@ -1,7 +1,7 @@
 """
 title: Bonsai2 Web Search Guard
 author: local
-version: 0.8.26-fix
+version: 0.8.26-fix2
 description: >
     Limit web-search tools on Bonsai2 (successful calls only consume quota),
     force a first search for current queries, preserve user terms (audit /
@@ -1079,38 +1079,41 @@ def _select_query_candidates(user_text, protected):
         found.sort(key=lambda item: item[0])
 
         if respect_stop and found:
-            first_pos, first_value = found[0]
-            boundary = GUARD_CANDIDATE_STOP_RE.search(
-                segment, first_pos + len(first_value)
-            )
+            # Prefer a subject-to-property boundary ("の公式", "の価格",
+            # "の仕様") over a later generic action boundary. This makes the
+            # entity immediately before that relation the target, even when
+            # an unrelated quoted name was mentioned earlier in the prompt.
+            boundary = re.search(r"の公式|の価格|の仕様", segment)
+            if boundary is None:
+                boundary = GUARD_CANDIDATE_STOP_RE.search(segment)
 
             if boundary:
-                eligible = []
+                preceding = [
+                    (pos, value) for pos, value in found
+                    if pos < boundary.start()
+                ]
 
-                for pos, value in found:
-                    if pos < boundary.start():
-                        eligible.append((pos, value))
-                        continue
+                if preceding:
+                    # Anchor on the protected term nearest the subject
+                    # boundary. Keep earlier terms only when explicitly
+                    # linked as parallel targets (AとB / A、B / AやB).
+                    eligible = [preceding[-1]]
 
-                    previous_items = [
-                        item for item in found if item[0] < pos
-                    ]
-                    if not previous_items:
-                        continue
+                    for pos, value in reversed(preceding[:-1]):
+                        next_pos, next_value = eligible[0]
+                        between = segment[pos + len(value):next_pos]
 
-                    previous_pos, previous_value = previous_items[-1]
-                    between = segment[
-                        previous_pos + len(previous_value):pos
-                    ]
+                        if re.search(
+                            r"(?:と|や|、|,|および|及び|ならびに|並びに)\s*$",
+                            between,
+                        ):
+                            eligible.insert(0, (pos, value))
+                        else:
+                            break
 
-                    # 境界後でも、並列接続された候補は保持する。
-                    if re.search(
-                        r"(?:と|や|、|,|および|及び|ならびに|並びに)\s*$",
-                        between,
-                    ):
-                        eligible.append((pos, value))
-
-                found = eligible
+                    found = eligible
+                else:
+                    found = []
 
         for pos, value in found:
             items.append((offset + pos, value))
@@ -1121,14 +1124,20 @@ def _select_query_candidates(user_text, protected):
             add_strong_candidates(segment, offset)
             add_protected_from_segment(segment, offset)
     else:
-        # 「例」と明示された引用だけを除外して候補を探索する。
+        # Quoted strings are not globally strong candidates: a quoted term
+        # mentioned in explanatory prose must not suppress the actual target.
+        # Explicit target-like quoted names can still be recovered by the
+        # protected-term pass below, using their position relative to a
+        # subject/action boundary.
         candidate_view = mask_quotes(text, examples_only=True)
-        add_strong_candidates(candidate_view, 0)
+        strong_candidate_view = mask_quotes(text)
+        add_strong_candidates(strong_candidate_view, 0)
 
-        # 候補が見つからなかった場合は、同じ除外済みテキストから
-        # 日本語の保護語を補完する。
-        if not items:
-            add_protected_from_segment(candidate_view, 0, respect_stop=True)
+        # Always consider protected terms even when another strong candidate
+        # exists. When a subject/action boundary is present, select the
+        # nearest protected term before it and keep earlier terms only when
+        # connected as a parallel list (e.g. AとBの公式サイト).
+        add_protected_from_segment(candidate_view, 0, respect_stop=True)
 
     items.sort(key=lambda item: item[0])
     all_values = [value for _, value in items]
