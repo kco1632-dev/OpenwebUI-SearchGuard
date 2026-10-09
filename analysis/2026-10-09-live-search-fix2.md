@@ -39,3 +39,14 @@ The user's attempt to read logs did not successfully retrieve the test's runtime
 3. The subsequent `Select-String` output contained source-code fragments such as `self._fetch_result_diag_ids = set()` and the literal `"QUERY_REPAIR "`. Given the failed read, this output cannot be treated as evidence of runtime diagnostic lines; `$text` may have retained a previous value.
 
 Next step: inspect a bounded tail of the log and anchor matches to actual `[Bonsai2 Web Search Guard]` log prefixes. Do not load the entire file into a single string. Do not infer that the repair/audit did or did not run from this failed log retrieval.
+
+## Bounded log-tail check (2026-10-09)
+
+The user scanned the last 16 MiB of C:\\OpenWebUI\\OpenWebUIService.out.log using a streaming StreamReader, looking for lines with an actual [Bonsai2 Web Search Guard] prefix, selected diagnostic names, and one of カティサーク, Katarsu, or Open WebUI.
+
+- Result: no matching lines in that 16 MiB tail.
+- This is **not proof that the diagnostics never ran**. The scan covered only the file tail, the test had no saved starting offset, and rotated logs / other listed log files were not part of this scan.
+- An earlier ReadToEnd() attempt failed with System.OutOfMemoryException. The later search of $text printed source-code fragments and is not valid evidence for runtime logging.
+- A separate PowerShell else error occurred because else was entered as a separate command after the if block had already executed. This did not affect the empty scan result.
+
+Next diagnostic action: inspect log file names, lengths, and last-write times to determine which current/rotated file covers the test time, then run a streaming, prefix-anchored query against the appropriate file(s). Do not infer execution from source-code string matches or absence of matches in one tail window.
