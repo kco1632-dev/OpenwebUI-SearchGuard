@@ -879,7 +879,6 @@ _OFFICIAL_SITE_REQUEST_TERMS = (
     "公式サイト",
     "公式hp",
     "公式url",
-    "公式url",
     "公式ページ",
     "official web site",
     "official website",
@@ -928,7 +927,7 @@ def _classify_official_search_result(entity: str, evidence: str) -> str:
 
 
 def _official_search_outcome_needs_recovery(outcome: dict) -> bool:
-    """Preserve legacy recovery and retry official queries lacking a candidate."""
+    """Preserve legacy status and retry official queries lacking a candidate."""
     if not isinstance(outcome, dict):
         return False
     status = outcome.get("status")
@@ -936,7 +935,8 @@ def _official_search_outcome_needs_recovery(outcome: dict) -> bool:
         return True
     return bool(
         outcome.get("official_intent")
-        and status in {"OFFICIAL_UNCONFIRMED", "NO_RESULTS"}
+        and outcome.get("official_status") == "OFFICIAL_UNCONFIRMED"
+        and status in {"ok", "NO_RESULTS"}
     )
 
 # Adjacent Latin name tokens: "Rakuten Hand 5G", "Galaxy S24 Ultra", ...
@@ -3607,25 +3607,33 @@ missing and that further research is possible if the user asks for it
 
             if not evidence:
                 status = "NO_RESULTS"
+                entity_status = "NO_RESULTS"
+                official_status = "OFFICIAL_UNCONFIRMED" if official_intent else None
+
                 print(
                     "[Bonsai2 Web Search Guard] "
                     "SEARCH_RESULT_AUDIT "
                     f"msg={state_key} "
                     f"tool_call_id={call_id} "
                     f"status={status} "
+                    f"entity_status={entity_status} "
                     f"entity={main_entity!r} "
                     "found=False "
                     f"results={result_count} "
                     f"official_intent={official_intent} "
-                    "official_confirmed=False"
+                    f"official_status={official_status or '-'} "
+                    f"official_candidates={official_candidate_count} "
+                    f"official_confirmed={False if official_intent else '-'}"
                 )
 
                 outcomes.append(
                     {
                         "call_id": call_id,
                         "status": status,
+                        "entity_status": entity_status,
                         "found": False,
                         "official_intent": official_intent,
+                        "official_status": official_status,
                         "official_candidate_count": 0,
                         "official_confirmed": False if official_intent else None,
                     }
@@ -3636,15 +3644,19 @@ missing and that further research is possible if the user asks for it
                 normalized_entity = _norm(main_entity)
                 found = normalized_entity in normalized_evidence
 
+                # Preserve the existing status field's original meaning:
+                # status=ok still means only that the entity was found.
+                status = "ok" if found else "VIOLATION"
+                entity_status = "ENTITY_FOUND" if found else "ENTITY_MISSING"
+
                 if official_intent:
-                    if not found:
-                        status = "VIOLATION"
-                    elif official_candidate_count:
-                        status = "OFFICIAL_CANDIDATE"
-                    else:
-                        status = "OFFICIAL_UNCONFIRMED"
+                    official_status = (
+                        "OFFICIAL_CANDIDATE"
+                        if official_candidate_count
+                        else "OFFICIAL_UNCONFIRMED"
+                    )
                 else:
-                    status = "ok" if found else "VIOLATION"
+                    official_status = None
 
                 print(
                     "[Bonsai2 Web Search Guard] "
@@ -3652,20 +3664,24 @@ missing and that further research is possible if the user asks for it
                     f"msg={state_key} "
                     f"tool_call_id={call_id} "
                     f"status={status} "
+                    f"entity_status={entity_status} "
                     f"entity={main_entity!r} "
                     f"found={found} "
                     f"results={result_count} "
                     f"official_intent={official_intent} "
+                    f"official_status={official_status or '-'} "
                     f"official_candidates={official_candidate_count} "
-                    "official_confirmed=False"
+                    f"official_confirmed={False if official_intent else '-'}"
                 )
 
                 outcomes.append(
                     {
                         "call_id": call_id,
                         "status": status,
+                        "entity_status": entity_status,
                         "found": found,
                         "official_intent": official_intent,
+                        "official_status": official_status,
                         "official_candidate_count": official_candidate_count,
                         "official_confirmed": False if official_intent else None,
                     }
