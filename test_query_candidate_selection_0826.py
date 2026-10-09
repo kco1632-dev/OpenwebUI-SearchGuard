@@ -127,5 +127,22 @@ class QueryCandidateSelection0826Tests(unittest.TestCase):
         self.assertTrue(info["changed"])
 
 
+    def test_numeric_conflict_replacement_is_preserved_with_url_instruction(self):
+        user_text = (
+            "RTX 2060の仕様を確認してください。"
+            "バッテリー容量は2630mAhです。"
+            "検索結果のタイトルとURLを示してください。"
+        )
+        model_query = "RTX 2060 2500mAh 仕様"
+
+        repaired, info = repair_query(user_text, model_query)
+
+        self.assertIn("2630mAh", repaired)
+        self.assertNotIn("2500mAh", repaired)
+        self.assertNotIn("URL", repaired)
+        self.assertTrue(info["changed"])
+        self.assertTrue(info["replaced"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
