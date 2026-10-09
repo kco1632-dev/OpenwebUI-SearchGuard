@@ -1,7 +1,7 @@
 """
 title: Bonsai2 Web Search Guard
 author: local
-version: 0.8.26-fix4
+version: 0.8.26-fix4-diag1
 description: >
     Limit web-search tools on Bonsai2 (successful calls only consume quota),
     force a first search for current queries, preserve user terms (audit /
@@ -21,6 +21,13 @@ description: >
       - duplicate fetch prevention
       - non-error Guard results for blocked/duplicate fetches
       - temporary fetch suspension after duplicate fetch attempts
+
+0.8.26-fix4-diag1 change:
+    Diagnostic-only derivative of 0.8.26-fix4. Adds TEXT_BOUNDARY_COMPARE
+    in _request_impl() to compare selected user text against a fresh
+    extraction from the current request body. Logs lengths, replacement-
+    character/site flags, and exact-match status without logging message text.
+    Does not change selected user_text or search/fetch behavior.
 
 0.8.26-fix4 change:
     Process each subject/property boundary independently when collecting
