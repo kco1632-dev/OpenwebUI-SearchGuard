@@ -89,3 +89,8 @@ Relevant observed lines for `msg=2bf77508-ef98-455e-91be-30795dd5e84c`:
 - **Version caveat:** the user reported updating the registered Function to 0.8.26-fix2, but the pasted log lines do not themselves print the Function version. They prove the observed runtime paths, not the deployed version independently.
 
 Next focused regression should preserve the full real user prompt (including the request to show titles and URLs) and assert that `repair_query()` does not inject `URL` when the intended target is already present. Do not adjust unrelated Guard behavior or repeat the live search until this narrow candidate-selection issue is addressed.
+
+
+## Follow-up candidate for false-positive `URL` repair (2026-10-09)
+
+A separate branch, `analysis/searchguard-2026-10-09-url-token-regressionfix`, now contains a `0.8.26-fix3` candidate and two additional regression tests using the full live prompt. The tests expect no injection of `URL` when `カティサーク 公式サイト` is already correct, and expect only the Japanese target to be restored when it is missing. Seven tests total; **G14 execution is pending**. Details: [url-token false-positive report](2026-10-09-url-token-false-positive.md).
