@@ -1,4 +1,4 @@
-# SearchGuard 0.8.26-fix — query candidate selection (2026-10-09)
+# SearchGuard 0.8.26-fix / fix2 — query candidate selection (2026-10-09)
 
 ## Summary
 
@@ -95,7 +95,7 @@ Cases in the original 4-case version:
 
 The user executed that original 4-case version against the original candidate branch; the results are recorded below (2 failures, 2 passes). For the separate fix2 branch, a fifth case was added in which the unrelated quote appears before the Japanese target.
 
-The current 5-case test file on the fix2 branch has **not yet been executed** against the user's G14 Python environment. Do not record it as passing until the new branch's test output is returned.
+The fix2 5-case test file was subsequently executed on G14; see the status update at the end. All five tests returned `ok` and the test summary ended in `OK`; the separately printed `TEST_EXIT_CODE` value was not visible.
 
 ## Live reproduction of candidate-selection regression (2026-10-09)
 
@@ -128,4 +128,9 @@ Changes in this candidate:
 - When a subject/property boundary such as `の公式`, `の価格`, or `の仕様` exists, anchor selection to the nearest protected term before that boundary and preserve preceding terms only when linked as a parallel list.
 - Add a fifth regression test where the unrelated quoted term appears before the Japanese target.
 
-**Verification status:** the original 0.8.26 candidate's 2/4 test failure is confirmed by G14 output. The new `0.8.26-fix2` candidate has not yet been run; its results remain unverified. It is not deployed to Open WebUI, and no PR was merged as part of this fix.
+**Status update (2026-10-09):**
+
+- **G14 tests:** the user ran `test_query_candidate_selection_0826.py` against fix2. All 5 tests returned `ok`; summary: `Ran 5 tests in 0.003s`, `OK`. The separately printed `TEST_EXIT_CODE` value was not visible.
+- **Open WebUI Function:** the user reports updating the registered implementation to `0.8.26-fix2`. This is not independently verified here; the live search and runtime-log check are pending.
+- **Still unverified:** whether live execution applies `QUERY_REPAIR`, whether `QUERY_AUDIT` / `STREAM_QUERY_AUDIT` show the expected status, and whether the actual query retains `カティサーク` without adding `Open WebUI`.
+- No PR was created or merged by this update; the original candidate branch and Draft PR #3 remain separate.
