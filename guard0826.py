@@ -1,7 +1,7 @@
 """
 title: Bonsai2 Web Search Guard
 author: local
-version: 0.8.26-fix2
+version: 0.8.26-fix3
 description: >
     Limit web-search tools on Bonsai2 (successful calls only consume quota),
     force a first search for current queries, preserve user terms (audit /
@@ -21,6 +21,15 @@ description: >
       - duplicate fetch prevention
       - non-error Guard results for blocked/duplicate fetches
       - temporary fetch suspension after duplicate fetch attempts
+
+0.8.26-fix3 change:
+    Restrict implicit-target strong-candidate collection when an explicit
+    subject/property boundary ("の公式", "の価格", "の仕様") is present.
+    This prevents uppercase terms in later task instructions (for example,
+    URL in "検索結果のタイトルとURLを示してください") from being selected
+    as missing search entities. Protected-term selection and query repair
+    continue through their existing paths. Focused regression tests cover
+    both an already-correct query and a query missing the Japanese target.
 
 0.8.25-fix change:
     Minimal bug fix: during duplicate-fetch suspension, keep
@@ -1131,6 +1140,18 @@ def _select_query_candidates(user_text, protected):
         # subject/action boundary.
         candidate_view = mask_quotes(text, examples_only=True)
         strong_candidate_view = mask_quotes(text)
+
+        # When the request contains a subject/property boundary, strong
+        # uppercase candidates are collected only from the subject side.
+        # Later output instructions such as "titles and URL" are not search
+        # entities and must not create a repair/audit violation.
+        strong_boundary = re.search(
+            r"の公式|の価格|の仕様",
+            strong_candidate_view,
+        )
+        if strong_boundary is not None:
+            strong_candidate_view = strong_candidate_view[:strong_boundary.start()]
+
         add_strong_candidates(strong_candidate_view, 0)
 
         # Always consider protected terms even when another strong candidate
