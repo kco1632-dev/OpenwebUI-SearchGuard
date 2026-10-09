@@ -104,7 +104,9 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
         )
         outcomes = self.filter._audit_search_results(messages, user, "test-unconfirmed")
         self.assertEqual(len(outcomes), 1)
-        self.assertEqual(outcomes[0]["status"], "OFFICIAL_UNCONFIRMED")
+        self.assertEqual(outcomes[0]["status"], "ok")
+        self.assertEqual(outcomes[0]["entity_status"], "ENTITY_FOUND")
+        self.assertEqual(outcomes[0]["official_status"], "OFFICIAL_UNCONFIRMED")
         self.assertTrue(outcomes[0]["found"])
         self.assertEqual(outcomes[0]["official_candidate_count"], 0)
         self.assertFalse(outcomes[0]["official_confirmed"])
@@ -122,7 +124,9 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
             ],
         )
         outcomes = self.filter._audit_search_results(messages, user, "test-candidate")
-        self.assertEqual(outcomes[0]["status"], "OFFICIAL_CANDIDATE")
+        self.assertEqual(outcomes[0]["status"], "ok")
+        self.assertEqual(outcomes[0]["entity_status"], "ENTITY_FOUND")
+        self.assertEqual(outcomes[0]["official_status"], "OFFICIAL_CANDIDATE")
         self.assertEqual(outcomes[0]["official_candidate_count"], 1)
         self.assertFalse(outcomes[0]["official_confirmed"])
 
@@ -145,16 +149,22 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
 
     def test_recovery_is_requested_for_unconfirmed_official_search(self):
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
-            "status": "OFFICIAL_UNCONFIRMED", "official_intent": True
+            "status": "ok",
+            "official_intent": True,
+            "official_status": "OFFICIAL_UNCONFIRMED",
         }))
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
-            "status": "NO_RESULTS", "official_intent": True
+            "status": "NO_RESULTS",
+            "official_intent": True,
+            "official_status": "OFFICIAL_UNCONFIRMED",
         }))
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
             "status": "VIOLATION", "official_intent": False
         }))
         self.assertFalse(GUARD._official_search_outcome_needs_recovery({
-            "status": "OFFICIAL_CANDIDATE", "official_intent": True
+            "status": "ok",
+            "official_intent": True,
+            "official_status": "OFFICIAL_CANDIDATE",
         }))
         self.assertFalse(GUARD._official_search_outcome_needs_recovery({
             "status": "ok", "official_intent": False
