@@ -1,7 +1,7 @@
 """
 title: Bonsai2 Web Search Guard
 author: local
-version: 0.8.26-fix3
+version: 0.8.26-fix4
 description: >
     Limit web-search tools on Bonsai2 (successful calls only consume quota),
     force a first search for current queries, preserve user terms (audit /
@@ -21,6 +21,15 @@ description: >
       - duplicate fetch prevention
       - non-error Guard results for blocked/duplicate fetches
       - temporary fetch suspension after duplicate fetch attempts
+
+0.8.26-fix4 change:
+    Process each subject/property boundary independently when collecting
+    implicit search-query candidates. This preserves distinct targets in
+    requests such as "Appleの公式サイトとSonyの価格" while still excluding
+    uppercase terms such as URL that occur after the final property boundary.
+    The protected-term pass follows the same per-boundary segmentation so
+    Japanese targets are preserved too. No tool quota, fetch, or runtime
+    logging behavior is changed.
 
 0.8.26-fix3 change:
     Restrict implicit-target strong-candidate collection when an explicit
@@ -1088,41 +1097,58 @@ def _select_query_candidates(user_text, protected):
         found.sort(key=lambda item: item[0])
 
         if respect_stop and found:
-            # Prefer a subject-to-property boundary ("の公式", "の価格",
-            # "の仕様") over a later generic action boundary. This makes the
-            # entity immediately before that relation the target, even when
-            # an unrelated quoted name was mentioned earlier in the prompt.
-            boundary = re.search(r"の公式|の価格|の仕様", segment)
-            if boundary is None:
+            # For multiple subject/property pairs, examine each region only
+            # up to its own boundary. This keeps a later target from being
+            # hidden by the first boundary and leaves post-target instructions
+            # (such as the requested output URL) outside candidate selection.
+            property_boundaries = list(
+                re.finditer(r"の公式|の価格|の仕様", segment)
+            )
+
+            def linked_preceding(preceding):
+                if not preceding:
+                    return []
+
+                # Keep the nearest protected term and earlier terms only
+                # when explicitly linked as a parallel list (AとB / A、B).
+                eligible = [preceding[-1]]
+
+                for pos, value in reversed(preceding[:-1]):
+                    next_pos, next_value = eligible[0]
+                    between = segment[pos + len(value):next_pos]
+
+                    if re.search(
+                        r"(?:と|や|、|,|および|及び|ならびに|並びに)\s*$",
+                        between,
+                    ):
+                        eligible.insert(0, (pos, value))
+                    else:
+                        break
+
+                return eligible
+
+            if property_boundaries:
+                selected = []
+                region_start = 0
+
+                for boundary in property_boundaries:
+                    preceding = [
+                        (pos, value) for pos, value in found
+                        if region_start <= pos < boundary.start()
+                    ]
+                    selected.extend(linked_preceding(preceding))
+                    region_start = boundary.end()
+
+                found = selected
+            else:
                 boundary = GUARD_CANDIDATE_STOP_RE.search(segment)
 
-            if boundary:
-                preceding = [
-                    (pos, value) for pos, value in found
-                    if pos < boundary.start()
-                ]
-
-                if preceding:
-                    # Anchor on the protected term nearest the subject
-                    # boundary. Keep earlier terms only when explicitly
-                    # linked as parallel targets (AとB / A、B / AやB).
-                    eligible = [preceding[-1]]
-
-                    for pos, value in reversed(preceding[:-1]):
-                        next_pos, next_value = eligible[0]
-                        between = segment[pos + len(value):next_pos]
-
-                        if re.search(
-                            r"(?:と|や|、|,|および|及び|ならびに|並びに)\s*$",
-                            between,
-                        ):
-                            eligible.insert(0, (pos, value))
-                        else:
-                            break
-
-                    found = eligible
-                else:
-                    found = []
+                if boundary:
+                    preceding = [
+                        (pos, value) for pos, value in found
+                        if pos < boundary.start()
+                    ]
+                    found = linked_preceding(preceding)
 
         for pos, value in found:
             items.append((offset + pos, value))
@@ -1141,18 +1167,25 @@ def _select_query_candidates(user_text, protected):
         candidate_view = mask_quotes(text, examples_only=True)
         strong_candidate_view = mask_quotes(text)
 
-        # When the request contains a subject/property boundary, strong
-        # uppercase candidates are collected only from the subject side.
-        # Later output instructions such as "titles and URL" are not search
-        # entities and must not create a repair/audit violation.
-        strong_boundary = re.search(
-            r"の公式|の価格|の仕様",
-            strong_candidate_view,
+        # Process each subject/property region up to its boundary. This
+        # preserves multiple targets with different properties while excluding
+        # later output instructions (for example, a trailing "URL").
+        strong_boundaries = list(
+            re.finditer(
+                r"の公式|の価格|の仕様",
+                strong_candidate_view,
+            )
         )
-        if strong_boundary is not None:
-            strong_candidate_view = strong_candidate_view[:strong_boundary.start()]
-
-        add_strong_candidates(strong_candidate_view, 0)
+        if strong_boundaries:
+            region_start = 0
+            for boundary in strong_boundaries:
+                add_strong_candidates(
+                    strong_candidate_view[region_start:boundary.start()],
+                    region_start,
+                )
+                region_start = boundary.end()
+        else:
+            add_strong_candidates(strong_candidate_view, 0)
 
         # Always consider protected terms even when another strong candidate
         # exists. When a subject/action boundary is present, select the
