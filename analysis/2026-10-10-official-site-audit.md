@@ -58,3 +58,40 @@ The audit fixtures cover entity-only results, explicit official wording on a thi
 - Candidate merged into `main`: no.
 - Open WebUI registered Function updated: no.
 - G14 live search behavior tested with this candidate: no.
+
+
+## Review follow-up: recovery must continue for weak candidates
+
+During code review, one condition was tightened: `OFFICIAL_CANDIDATE` based on title/snippet wording is not independent confirmation, so it must not suppress the one-shot recovery. The candidate now requests recovery for an official-site request whenever the entity audit status allows the existing recovery path and `official_confirmed is not True`. The current fix6 candidate never assigns `OFFICIAL_CONFIRMED`, so its first search result remains unconfirmed even if a snippet says “official website”; it can trigger at most the existing single recovery search and remains subject to the existing search quota / final-mode guard.
+
+The same test suite now explicitly asserts that:
+- a result mentioning the entity but with no official-site wording triggers recovery;
+- a snippet-level `OFFICIAL_CANDIDATE` with `official_confirmed=False` also triggers recovery;
+- a genuinely confirmed outcome, if a future verifier exists and explicitly returns `official_confirmed=True`, would not trigger recovery;
+- ordinary non-official searches keep legacy behavior.
+
+Updated code blob SHA after review: `e0923378edcdbea588a1c9116709564e66807970`.
+Updated test blob SHA: `bbe369c11155448389de68ebbae52d1640675289`.
+Latest combined Actions run with the revised recovery test: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37998065212/job/114049059382
+
+## How far generic automatic official-site verification can go
+
+There is no universally reliable text-only heuristic that proves a website is official across arbitrary brands, products, organizations, and languages without some source of independent authority. In particular:
+- a result title/snippet can claim “official website” while linking to a third-party article;
+- domain-name token matching is weak, can fail across transliterations and language variants, and can misidentify unrelated sites;
+- TLS/HTTPS, a canonical URL, a page title, branding, a copyright line, structured data, or a self-declared “official” label can show consistency or self-identification but do not by themselves prove that the publisher is the genuine rights-holder;
+- following links between two sites does not solve the problem if the first site has not itself been independently established as authoritative.
+
+For a generic no-hardcoded-domain design, the recommended evidence ladder is:
+1. `ENTITY_FOUND`: search result mentions the requested entity.
+2. `OFFICIAL_CANDIDATE`: search metadata contains official-site wording, clearly labeled as a lead only.
+3. `PAGE_FETCHED`: the candidate page itself was successfully fetched; this is transport/content availability, not officiality.
+4. `PAGE_SELF_IDENTIFIES`: the page body claims to be the official presence for the requested entity; this remains a self-claim.
+5. `INDEPENDENTLY_CORROBORATED`: a separately established authoritative primary source links to or names the exact candidate domain for that same entity.
+6. `OFFICIAL_CONFIRMED`: only eligible if stage 5 is satisfied and entity/domain mapping is unambiguous; otherwise retain `OFFICIAL_UNCONFIRMED`.
+
+The current fix6 code implements stages 1–2 and instructions to inspect stage 3–4, but it does not independently establish stage 5 and must not mark stage 6. A future generic verifier needs a defensible rule for how the corroborating source is itself established as authoritative; no generic rule is implemented here. Until then, the safe user-facing behavior is to provide a candidate URL labelled unconfirmed or explicitly say that officiality could not be confirmed.
+
+## Fetch-gate scope warning
+
+The existing `FETCH_GATE_CANDIDATE verdict=OK` uses entity presence in result evidence. It is deliberately not converted into an officiality signal in this change. It may allow fetching an unofficial retailer/article that mentions the entity; changing that gate to enforce officialness would be a separate behavior change and requires its own tests, especially to avoid blocking valid official sites with Japanese/Latin aliases.
