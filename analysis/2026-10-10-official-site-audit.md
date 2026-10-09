@@ -71,8 +71,8 @@ The same test suite now explicitly asserts that:
 - ordinary non-official searches keep legacy behavior.
 
 Updated code blob SHA after latest changelog alignment: `fa407343b7c5e181cb4d77e4fc2862778e3599e7`.
-Updated test blob SHA: `bbe369c11155448389de68ebbae52d1640675289`.
-Latest combined Actions run with the revised recovery test and final candidate revision: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37998240639/job/114049626440
+Updated test blob SHA after connecting audit outcome to recovery decision: `a50b3c2f19f43d63b632cde44a1a5f26d920e58a`.
+Latest combined Actions run with the revised recovery test and final candidate revision: https://github.com/kco1632-dev/for-chatgpt/actions/runs/37998310469/job/114049883578
 
 ## How far generic automatic official-site verification can go
 
