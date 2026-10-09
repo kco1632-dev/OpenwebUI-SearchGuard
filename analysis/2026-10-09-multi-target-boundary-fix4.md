@@ -37,9 +37,12 @@ The focused test module has 10 tests. Two cases target this regression:
 1. `Appleの公式サイトとSonyの価格...`: both `Apple` and `Sony` must be retained and `URL` must not be injected.
 2. `カティサークの公式サイトとバランタインの価格...`: both Japanese targets must be retained and `URL` must not be injected.
 
-G14 focused test results, run with `C:\\OpenWebUI\\venv\\Scripts\\python.exe` against fix4 candidate files:
+G14 focused test results, run with `C:\\OpenWebUI\\venv\\Scripts\\python.exe` against the fix4 candidate files:
 
-- Added regression cases, based on commit `572ef0c1ccd9864a1493ef79cd9606833d8ef0ee`: `Ran 2 tests in 0.003s`, `OK`, `TEST_EXIT_CODE=0`.
-- Full focused module on the fix4 branch: all 10 tests reported `ok`; summary `Ran 10 tests in 0.006s`, `OK`. The pasted output included the successful unittest summary; the numeric `TEST_EXIT_CODE` line was not included in the supplied output.
+- Added multi-target regression cases: `Ran 2 tests in 0.003s`, `OK`, `TEST_EXIT_CODE=0`.
+- Full focused module: `Ran 10 tests in 0.006s`, `OK`.
+- Combined focused + extended + audit-semantic modules: all 37 tests reported `ok`; summary `Ran 37 tests in 0.011s`, `OK`, `TEST_EXIT_CODE=0`.
 
-The focused suite now covers the original URL false-positive, numeric repair, existing query stability, and separate English/Latin and Japanese targets across distinct property boundaries. A passing unit test does not prove behavior in the active Open WebUI Function; that needs separate, explicit runtime verification after the user chooses whether to test deployment.
+The 37 tests consist of 10 focused tests, 23 re-created query-repair tests, and 4 re-created audit-facing semantic tests. The 23+4 modules were reconstructed from documented categories, not recovered byte-for-byte from the earlier historical test source. The 4 audit-facing tests do not exercise full Open WebUI `Filter.request()` integration or prove runtime log emission.
+
+The tested coverage includes the original URL false-positive, numeric correction, existing query stability, parallel targets, distinct English/Latin and Japanese targets across separate property boundaries, and audit-facing outcomes. Passing unit tests do not prove behavior in the active Open WebUI Function; that requires separate runtime verification if and when the user authorizes deployment testing.
