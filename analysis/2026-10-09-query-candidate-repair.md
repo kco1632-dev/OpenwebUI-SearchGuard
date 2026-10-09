@@ -94,3 +94,36 @@ Cases:
 4. Explicit example marker: example quote must not be injected.
 
 The first two cases are specifically intended to detect the suspected failure mode. The test module has been committed to this branch, but has **not yet been executed against the user's G14 Python environment**. Do not record these cases as pass/fail until the test output is returned.
+
+## Live reproduction of candidate-selection regression (2026-10-09)
+
+The user ran the committed `test_query_candidate_selection_0826.py` on the G14 with the original candidate branch `analysis/searchguard-2026-10-09-query-candidates`, using `C:\OpenWebUI\venv\Scripts\python.exe -m unittest -v test_query_candidate_selection_0826.py`.
+
+Observed: 4 tests ran; 2 failed and 2 passed.
+
+Confirmed failures:
+
+1. With user text `カティサークの公式サイトを調べてください。説明文では「Open WebUI」という名前も出てきます。` and generated query `Katarsu whisky brand official website`, the repaired query was `Open WebUI Katarsu whisky brand official website`. The required target `カティサーク` was not restored.
+2. With the same user text and query `カティサーク 公式サイト`, the result injected `Open WebUI`, causing `info["changed"]` to indicate an unnecessary repair/audit violation.
+
+The explicit-target-marker and explicit-example tests passed.
+
+Conclusion: this is a reproduced regression in the 0.8.26 candidate-selection change under the focused test context. The evidence shows that an unrelated quoted English phrase can be chosen while the Japanese target is omitted, or can create an unnecessary query change. It does not by itself prove that this exact text context was the one present in the earlier live カティサーク request.
+
+## Candidate fix2
+
+A separate branch was created to preserve the original candidate artifact and isolate the regression fix:
+
+- Branch: `analysis/searchguard-2026-10-09-query-candidate-regressionfix`
+- Candidate file: [guard0826.py](https://github.com/kco1632-dev/OpenWebUI-SearchGuard/blob/analysis/searchguard-2026-10-09-query-candidate-regressionfix/guard0826.py)
+- Header version: `0.8.26-fix2`
+- Focused test module: [test_query_candidate_selection_0826.py](https://github.com/kco1632-dev/OpenWebUI-SearchGuard/blob/analysis/searchguard-2026-10-09-query-candidate-regressionfix/test_query_candidate_selection_0826.py)
+
+Changes in this candidate:
+
+- Avoid selecting quoted strings as global strong candidates in implicit-target cases.
+- Always examine protected terms even when a strong candidate exists.
+- When a subject/property boundary such as `の公式`, `の価格`, or `の仕様` exists, anchor selection to the nearest protected term before that boundary and preserve preceding terms only when linked as a parallel list.
+- Add a fifth regression test where the unrelated quoted term appears before the Japanese target.
+
+**Verification status:** the original 0.8.26 candidate's 2/4 test failure is confirmed by G14 output. The new `0.8.26-fix2` candidate has not yet been run; its results remain unverified. It is not deployed to Open WebUI, and no PR was merged as part of this fix.
