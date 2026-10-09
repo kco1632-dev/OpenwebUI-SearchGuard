@@ -51,7 +51,7 @@ All seven test cases returned `ok`, including both new cases using the full live
 1. Existing query `カティサーク 公式サイト` remained unchanged; `URL` and `Open WebUI` were not injected; `info["changed"] == False`.
 2. Query `公式サイト` was repaired to include `カティサーク`, without injecting `URL` or `Open WebUI`; `info["changed"] == True`.
 
-**Updated G14 result (2026-10-09): PASS, 8/8.** The user downloaded both files from the fix3 branch at commit `54ec2c85098002167efefb7094271...` and ran the suite using the Open WebUI Python environment. The transcript confirms all eight tests returned `ok`, followed by `Ran 8 tests in 0.004s`, `OK`, and `TEST_EXIT_CODE=0`.
+**Updated G14 result (2026-10-09): PASS, 8/8.** The user downloaded both files from the fix3 branch at commit `54ec2c85098002167efefb7094338a617d86c294` and ran the suite using the Open WebUI Python environment. The transcript confirms all eight tests returned `ok`, followed by `Ran 8 tests in 0.004s`, `OK`, and `TEST_EXIT_CODE=0`.
 
 The eighth numeric-conflict test passed: a generated `2500mAh` is replaced by the requested `2630mAh`, while `URL` is not injected into the query. The two full-live-prompt URL tests and the five prior cases also passed in this 8-test run.
 
