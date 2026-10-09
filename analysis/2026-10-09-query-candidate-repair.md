@@ -76,3 +76,21 @@ The next live verification should be narrow and log-based:
 4. Run a genuinely missing-target case and a numeric-conflict case to confirm repair and audit behavior remain active.
 
 No conclusion about search-engine quality, model query planning, or overall web-search accuracy is made by this change record.
+
+
+## Focused regression test added (2026-10-09)
+
+A reproducible test module is now stored in the candidate branch:
+
+- [test_query_candidate_selection_0826.py](../test_query_candidate_selection_0826.py)
+
+The repository previously recorded the 23 strict cases and 4 audit-semantic checks, but did not contain their runnable test source. This new module focuses only on the suspected candidate-selection regression and its audit-facing changed flag. It imports the candidate module directly and does not call Open WebUI, DDGS, or any network service.
+
+Cases:
+
+1. Unmarked, unrelated quoted English term alongside an implicit Japanese target: target must be repaired into the query and unrelated term must not be injected.
+2. Query already contains the Japanese target: repair must leave it unchanged and report changed=False.
+3. Explicit target marker: target must be selected without unrelated quoted term.
+4. Explicit example marker: example quote must not be injected.
+
+The first two cases are specifically intended to detect the suspected failure mode. The test module has been committed to this branch, but has **not yet been executed against the user's G14 Python environment**. Do not record these cases as pass/fail until the test output is returned.
