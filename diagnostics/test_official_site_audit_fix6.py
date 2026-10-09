@@ -147,16 +147,25 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
         self.assertEqual(outcomes[0]["status"], "ok")
         self.assertFalse(outcomes[0]["official_intent"])
 
-    def test_recovery_is_requested_for_unconfirmed_official_search(self):
+    def test_recovery_is_requested_until_officiality_is_confirmed(self):
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
             "status": "ok",
             "official_intent": True,
             "official_status": "OFFICIAL_UNCONFIRMED",
+            "official_confirmed": False,
         }))
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
             "status": "NO_RESULTS",
             "official_intent": True,
             "official_status": "OFFICIAL_UNCONFIRMED",
+            "official_confirmed": False,
+        }))
+        # A snippet-level candidate is not independent verification.
+        self.assertTrue(GUARD._official_search_outcome_needs_recovery({
+            "status": "ok",
+            "official_intent": True,
+            "official_status": "OFFICIAL_CANDIDATE",
+            "official_confirmed": False,
         }))
         self.assertTrue(GUARD._official_search_outcome_needs_recovery({
             "status": "VIOLATION", "official_intent": False
@@ -165,6 +174,7 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
             "status": "ok",
             "official_intent": True,
             "official_status": "OFFICIAL_CANDIDATE",
+            "official_confirmed": True,
         }))
         self.assertFalse(GUARD._official_search_outcome_needs_recovery({
             "status": "ok", "official_intent": False
