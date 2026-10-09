@@ -1,4 +1,4 @@
-"""Focused regression tests for SearchGuard 0.8.26-fix2 query candidate selection.
+"""Focused regression tests for SearchGuard 0.8.26-fix3 query candidate selection.
 
 Run from this directory with:
     python -m unittest -v test_query_candidate_selection_0826.py
@@ -14,6 +14,12 @@ from guard0826 import repair_query
 
 TARGET = "カティサーク"
 UNRELATED_QUOTED_TERM = "Open WebUI"
+FULL_LIVE_PROMPT = (
+    "カティサークの公式サイトを調べてください。"
+    "説明文では「Open WebUI」という名前も出てきます。"
+    "今回は検索のみ実行し、fetch_urlでページ本文を取得せず、"
+    "検索結果のタイトルとURLを示してください。"
+)
 
 
 class QueryCandidateSelection0826Tests(unittest.TestCase):
@@ -93,6 +99,30 @@ class QueryCandidateSelection0826Tests(unittest.TestCase):
         repaired, info = repair_query(user_text, model_query)
 
         self.assertIn(TARGET, repaired)
+        self.assertNotIn(UNRELATED_QUOTED_TERM, repaired)
+        self.assertTrue(info["changed"])
+
+
+    def test_full_live_prompt_does_not_inject_url_when_target_is_present(self):
+        model_query = "カティサーク 公式サイト"
+
+        repaired, info = repair_query(FULL_LIVE_PROMPT, model_query)
+
+        self.assertEqual(repaired, model_query)
+        self.assertNotIn("URL", repaired)
+        self.assertNotIn(UNRELATED_QUOTED_TERM, repaired)
+        self.assertFalse(
+            info["changed"],
+            "Output-format instructions must not cause a false query repair.",
+        )
+
+    def test_full_live_prompt_repairs_missing_target_without_injecting_url(self):
+        model_query = "公式サイト"
+
+        repaired, info = repair_query(FULL_LIVE_PROMPT, model_query)
+
+        self.assertIn(TARGET, repaired)
+        self.assertNotIn("URL", repaired)
         self.assertNotIn(UNRELATED_QUOTED_TERM, repaired)
         self.assertTrue(info["changed"])
 
