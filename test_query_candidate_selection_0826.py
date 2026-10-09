@@ -144,5 +144,32 @@ class QueryCandidateSelection0826Tests(unittest.TestCase):
         self.assertTrue(info["replaced"])
 
 
+    def test_distinct_targets_before_different_property_boundaries_are_both_preserved(self):
+        user_text = (
+            "Appleの公式サイトとSonyの価格を確認してください。"
+            "検索結果のタイトルとURLを示してください。"
+        )
+        model_query = "公式サイト 価格"
+
+        repaired, info = repair_query(user_text, model_query)
+
+        self.assertIn(
+            "Apple",
+            repaired,
+            "The first subject must remain a search-query candidate.",
+        )
+        self.assertIn(
+            "Sony",
+            repaired,
+            "The second subject must not be lost after the first subject/property boundary.",
+        )
+        self.assertNotIn(
+            "URL",
+            repaired,
+            "Output-format instructions must not become a search entity.",
+        )
+        self.assertTrue(info["changed"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
