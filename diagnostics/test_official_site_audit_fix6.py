@@ -110,6 +110,9 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
         self.assertTrue(outcomes[0]["found"])
         self.assertEqual(outcomes[0]["official_candidate_count"], 0)
         self.assertFalse(outcomes[0]["official_confirmed"])
+        self.assertTrue(
+            GUARD._official_search_outcome_needs_recovery(outcomes[0])
+        )
 
     def test_audit_candidate_remains_unconfirmed(self):
         user = "カティサークの公式サイトを確認してください。"
@@ -129,6 +132,9 @@ class OfficialSiteAuditFix6Tests(unittest.TestCase):
         self.assertEqual(outcomes[0]["official_status"], "OFFICIAL_CANDIDATE")
         self.assertEqual(outcomes[0]["official_candidate_count"], 1)
         self.assertFalse(outcomes[0]["official_confirmed"])
+        self.assertTrue(
+            GUARD._official_search_outcome_needs_recovery(outcomes[0])
+        )
 
     def test_ordinary_entity_search_keeps_legacy_ok_status(self):
         user = "カティサークの容量を確認してください。"
