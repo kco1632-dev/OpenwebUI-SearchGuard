@@ -57,6 +57,19 @@ class QueryCandidateSelection0826Tests(unittest.TestCase):
             "Unrelated quoted text must not make audit report a repair-worthy violation.",
         )
 
+    def test_unrelated_quote_before_implicit_japanese_target_is_ignored(self):
+        user_text = (
+            "説明文では「Open WebUI」という名前も出てきますが、"
+            "今回調べたいのはカティサークの公式サイトです。"
+        )
+        model_query = "Katarsu whisky brand official website"
+
+        repaired, info = repair_query(user_text, model_query)
+
+        self.assertIn(TARGET, repaired)
+        self.assertNotIn(UNRELATED_QUOTED_TERM, repaired)
+        self.assertTrue(info["changed"])
+
     def test_explicit_target_marker_preserves_japanese_target(self):
         user_text = (
             "今回の対象はカティサークです。"
