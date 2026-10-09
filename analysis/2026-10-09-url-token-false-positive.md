@@ -56,3 +56,15 @@ All seven test cases returned `ok`, including both new cases using the full live
 The eighth numeric-conflict test passed: a generated `2500mAh` is replaced by the requested `2630mAh`, while `URL` is not injected into the query. The two full-live-prompt URL tests and the five prior cases also passed in this 8-test run.
 
 This validates these eight focused cases only. The earlier 23-case strict regression suite and four-case audit-semantics suite have not been rerun against fix3; additional boundary variations and live Open WebUI behavior remain unverified. The candidate has not been reported as deployed. Do not infer overall correctness or deploy from the focused suite alone.
+
+
+## Extended regression coverage reconstruction (2026-10-09)
+
+The repository tree was checked on `main`, the original query-candidate branch, the fix2 branch, the earlier 2026-10-09 analysis branch, and the guard0824 backup branch. None contains the historical source files for the previously reported 23-case strict suite or 4-case audit-semantics suite. The prior pass counts were recorded, but the test source itself was not committed; those exact historical tests therefore cannot be rerun directly from GitHub.
+
+To continue verification without misrepresenting the old suite, two explicitly **reconstructed** test modules were added on this fix3 branch:
+
+- [`test_query_repair_extended_fix3.py`](../test_query_repair_extended_fix3.py) — 23 cases based on the documented categories: Japanese and quoted target selection, unrelated quoted terms, explicit target markers, parallel targets, generic site terms, full live prompt and URL handling, uppercase identifiers, numeric corrections (volume, currency, degree, battery), exact values, ambiguous values, and standalone numeric identifiers.
+- [`test_query_audit_semantics_fix3.py`](../test_query_audit_semantics_fix3.py) — 4 cases checking the documented `info["changed"]` to `ok` / `VIOLATION` mapping. These are audit-facing unit checks, not a full `Filter.request()` integration test and not proof of runtime log routing.
+
+These reconstructed tests are not claimed to be byte-for-byte or case-for-case identical to the original 23+4 test sets. They have been committed and read back from GitHub, but **have not yet been run on G14**. Combined with the existing focused module, the next G14 run should execute 8 + 23 + 4 = 35 tests. Any failures should be preserved verbatim and analysed before changing production code.
