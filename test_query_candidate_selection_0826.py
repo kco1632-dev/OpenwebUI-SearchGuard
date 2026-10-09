@@ -1,4 +1,4 @@
-"""Focused regression tests for SearchGuard 0.8.26 query candidate selection.
+"""Focused regression tests for SearchGuard 0.8.26-fix2 query candidate selection.
 
 Run from this directory with:
     python -m unittest -v test_query_candidate_selection_0826.py
