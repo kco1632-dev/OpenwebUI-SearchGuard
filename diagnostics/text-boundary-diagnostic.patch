@@ -1,0 +1,43 @@
+--- a/guard0826.py
++++ b/guard0826.py
+@@
+         original_user_text = self._extract_user_text_from_messages(
+             messages,
+             message_id,
+         )
+ 
++        diag_has_replacement = "\ufffd" in original_user_text
++        diag_has_site = "サイト" in original_user_text
++        print(
++            "[Bonsai2 Web Search Guard] TEXT_BOUNDARY "
++            f"stage=inlet msg={message_id or 'none'} "
++            f"chars={len(original_user_text)} "
++            f"has_replacement={diag_has_replacement} "
++            f"has_site={diag_has_site}"
++        )
++
+         if message_id:
+             key = str(message_id)
+@@
+         if not user_text:
+             user_text = self._latest_user_text(
+                 list(
+                     body.get(
+                         "messages",
+@@
+                     or []
+                 )
+             )
+ 
++        diag_has_replacement = "\ufffd" in user_text
++        diag_has_site = "サイト" in user_text
++        print(
++            "[Bonsai2 Web Search Guard] TEXT_BOUNDARY "
++            f"stage=request msg={state_key} "
++            f"chars={len(user_text)} "
++            f"has_replacement={diag_has_replacement} "
++            f"has_site={diag_has_site}"
++        )
++
+         if user_text:
+             self._audit_user_text[state_key] = user_text
