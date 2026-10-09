@@ -37,4 +37,12 @@ The focused test module has 10 tests. Two cases target this regression:
 1. `Appleの公式サイトとSonyの価格...`: both `Apple` and `Sony` must be retained and `URL` must not be injected.
 2. `カティサークの公式サイトとバランタインの価格...`: both Japanese targets must be retained and `URL` must not be injected.
 
-The fix4 focused cases have not yet been executed on G14 at the time of this note. A successful unit-test result will still not prove correct behavior in the active Open WebUI Function; that needs separate, explicit runtime verification after the user chooses whether to test deployment.
+G14 result for the two added regression cases (run with `C:\\OpenWebUI\\venv\\Scripts\\python.exe` against commit `572ef0c1ccd9864a1493ef79cd9606833d8ef0ee`):
+
+```
+Ran 2 tests in 0.003s
+OK
+TEST_EXIT_CODE=0
+```
+
+Both the English/Latin target case and the Japanese target case passed. The remaining eight focused tests have not yet been run against fix4 in this test sequence. A passing unit test does not prove behavior in the active Open WebUI Function; that needs separate, explicit runtime verification after the user chooses whether to test deployment.
