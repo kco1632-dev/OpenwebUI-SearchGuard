@@ -201,6 +201,49 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         self.assertEqual(associated, {})
         self.assertIsNone(records[0]["call_id"])
 
+    def test_existing_association_stays_stable_as_more_duplicate_calls_arrive(self):
+        # A first audit may associate the first call before a later duplicate
+        # call and its record exist. That association must remain stable.
+        records = [
+            {
+                "sequence": 1,
+                "model_query": "same model query",
+                "effective_query": "effective query A",
+                "call_id": "call-1",
+            }
+        ]
+        calls_before_later_invocation = [
+            ("call-2", native_args("same model query")),
+            ("call-1", native_args("same model query")),
+        ]
+
+        first = GUARD._associate_effective_search_queries(
+            calls_before_later_invocation, records
+        )
+        self.assertEqual(first, {"call-1": "effective query A"})
+        self.assertEqual(records[0]["call_id"], "call-1")
+
+        records.append(
+            {
+                "sequence": 2,
+                "model_query": "same model query",
+                "effective_query": "effective query B",
+                "call_id": None,
+            }
+        )
+        second = GUARD._associate_effective_search_queries(
+            calls_before_later_invocation, records
+        )
+
+        self.assertEqual(
+            second,
+            {
+                "call-1": "effective query A",
+                "call-2": "effective query B",
+            },
+        )
+        self.assertEqual([r["call_id"] for r in records], ["call-1", "call-2"])
+
     def test_unmatched_model_query_does_not_consume_an_effective_record(self):
         records = [
             {
