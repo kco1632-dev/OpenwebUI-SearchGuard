@@ -3495,7 +3495,7 @@ missing and that further research is possible if the user asks for it
         # rightmost candidate just because it appears later.
         comparison_requested = bool(
             re.search(
-                r"(?:比較|比べ|違い|どちら|対決|compare|versus|\bvs\\.?\b)",
+                r"(?:比較|比べ|違い|どちら|対決|compare|versus|\bvs\.?\b)",
                 masked,
                 re.IGNORECASE,
             )
