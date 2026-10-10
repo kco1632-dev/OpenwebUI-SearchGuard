@@ -3495,7 +3495,7 @@ missing and that further research is possible if the user asks for it
         # rightmost candidate just because it appears later.
         comparison_requested = bool(
             re.search(
-                r"(?:比較|比べ|違い|どちら|対決|compare|versus|\\bvs\\.?\\b)",
+                r"(?:比較|比べ|違い|どちら|対決|compare|versus|\bvs\\.?\b)",
                 masked,
                 re.IGNORECASE,
             )
@@ -3526,7 +3526,7 @@ missing and that further research is possible if the user asks for it
                 if left[0] >= right[0] or left[1] > right[0]:
                     continue
                 between = masked[left[1]:right[0]]
-                if re.fullmatch(r"\\s*という\\s*", between):
+                if re.fullmatch(r"\s*という\s*", between):
                     naming_relations.append((left[0], right[0], left[2]))
         if naming_relations:
             naming_relations.sort(key=lambda item: (item[0], item[1]))
@@ -3542,7 +3542,7 @@ missing and that further research is possible if the user asks for it
                 if left[0] >= right[0] or left[1] > right[0]:
                     continue
                 between = masked[left[1]:right[0]]
-                if re.fullmatch(r"\\s*の\\s*", between):
+                if re.fullmatch(r"\s*の\s*", between):
                     genitive_heads.append((right[0], right[2]))
         if genitive_heads:
             genitive_heads.sort(key=lambda item: item[0])
