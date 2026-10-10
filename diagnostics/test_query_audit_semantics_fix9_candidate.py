@@ -3,8 +3,8 @@
 Offline tests. No Open WebUI or network calls are made."""
 
 import unittest
-
 import importlib.util
+from pathlib import Path
 
 SOURCE = Path(__file__).with_name("guard0.8.26-fix9-effective-query-fetch-gate.py")
 SPEC = importlib.util.spec_from_file_location("searchguard_fix9_AuditSemanticsFix9CandidateTests", SOURCE)
