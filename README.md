@@ -4,15 +4,19 @@ Open WebUI の Native Web Search を、Bonsai2 で安定運用するための Gu
 
 本リポジトリは、Bonsai2-27B + Open WebUI Native Web Search を実運用しながら、検索ツールの回数制御、検索結果の検証、fetch 制御、日付 preflight、tool-loop 終了処理、raw `<tool_call>` の観測などを段階的に追加・検証してきた記録でもあります。
 
-## Current version
+## Repository baseline on main
 
-**v0.8.24**
+**v0.8.24 (diagnostic baseline)**
+
+main ブランチのコード・説明は、raw `<tool_call>` の観測用に作成した 0.8.24 の診断ベースラインを記録しています。これは、Open WebUI の管理画面に現在登録されている Function の版と必ずしも同一ではありません。
+
+2026-10-10 時点で、実環境の Open WebUI Functions UI に `v0.8.26-fix10-recovery-query-purpose-v1` が保存されたことが報告されています。候補の詳細、バックアップ、未完了の検証項目は [fix10 live implementation record](analysis/2026-10-10-fix10-live-implementation.md) を参照してください。実機の検索回帰テストを完了したという意味ではありません。
 
 0.8.24 は **診断専用のリリース**です。0.8.23 の検索・fetch・recovery・final-answer の挙動を変更せず、raw `<tool_call>` がどの状態で発生するかを観測するログを追加しています。
 
 主な対象ファイル:
 
-- `guard0824.py` — 現行 Guard
+- `guard0824.py` — main ブランチ上の 0.8.24 baseline snapshot（live Function とは区別）
 - `Bonsai2-WebSearch-SystemPrompt.txt` — Bonsai2 用の証拠重視 Web Search system prompt
 
 ## 0.8.24 の目的
