@@ -38,11 +38,11 @@ The fix9 effective-query Fetch Gate logic is retained. The diff was compared aga
 
 Before editing the live Function, a read-only SQLite query captured the registered content to:
 
-`C:\\OpenWebUI\\backups\\searchguard-registered-preupdate-20261010.py`
+`C:\OpenWebUI\backups\searchguard-registered-preupdate-20261010.py`
 
 - Backup size: 226,280 bytes
 - SHA-256: `124d56186d8d1bfeec754a9552a79d4f164cf1bb96186bbd72b1927b9734d452`
-- The previously registered content was also backed up to `C:\\OpenWebUI\\backups\\searchguard-registered-20261010.py` with the same SHA-256.
+- The previously registered content was also backed up to `C:\OpenWebUI\backups\searchguard-registered-20261010.py` with the same SHA-256.
 
 Immediately before the edit, the database showed `active=1` and `global=0`. These are pre-update values; the post-update active state has not yet been independently checked. The Open WebUI service was not restarted as part of this implementation step.
 
