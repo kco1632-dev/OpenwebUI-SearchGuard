@@ -179,6 +179,28 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         )
         self.assertEqual([record["call_id"] for record in records], ["call-1", "call-2"])
 
+    def test_duplicate_model_queries_with_missing_record_are_not_ambiguously_assigned(self):
+        # One recorded execution cannot safely be attributed to either of two
+        # native calls with identical model arguments. The record might belong
+        # to the second call if the first was stopped before this wrapper ran.
+        records = [
+            {
+                "sequence": 1,
+                "model_query": "same model query",
+                "effective_query": "effective query from an executed call",
+                "call_id": None,
+            }
+        ]
+        calls = [
+            ("call-not-recorded", native_args("same model query")),
+            ("call-recorded-later", native_args("same model query")),
+        ]
+
+        associated = GUARD._associate_effective_search_queries(calls, records)
+
+        self.assertEqual(associated, {})
+        self.assertIsNone(records[0]["call_id"])
+
     def test_unmatched_model_query_does_not_consume_an_effective_record(self):
         records = [
             {
