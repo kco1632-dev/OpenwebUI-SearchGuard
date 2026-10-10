@@ -244,6 +244,144 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         )
         self.assertEqual([r["call_id"] for r in records], ["call-1", "call-2"])
 
+    def test_failed_search_and_same_query_retry_keep_effective_records_separate(self):
+        guard = GUARD.Filter()
+        state_key = "test-msg-retry"
+        user_text = "カティサークの味を調べてください。"
+        state = guard._get_fetch_gate_state(state_key, user_text)
+        guard._get_main_audit_entity = lambda _text: TARGET
+
+        model_query = "\"Katie's\" OR \"Catie\" whisky"
+        first_effective_query = "\"カティサーク\" ウイスキー 初回検索"
+        retry_effective_query = "\"カティサーク\" ウイスキー 再試行"
+        observed_queries = []
+        result_items = [
+            {
+                "title": "カティサークの味",
+                "link": "https://example.test/cutty-sark",
+                "snippet": "カティサークの特徴と味わいを説明します。",
+            },
+            {
+                "title": "別ブランドのウイスキー",
+                "link": "https://example.test/unrelated",
+                "snippet": "別ブランドのみを紹介します。",
+            },
+        ]
+
+        def fake_search(**kwargs):
+            observed_queries.append(kwargs.get("query"))
+            if len(observed_queries) == 1:
+                raise TimeoutError("request timeout")
+            return json.dumps(result_items, ensure_ascii=False)
+
+        body = {
+            "metadata": {
+                "tools": {
+                    "search_web": {
+                        "callable": fake_search,
+                    }
+                }
+            }
+        }
+        guard._wrap_search_callable(body, user_text, state_key)
+
+        state["search_recovery_pending"] = True
+        state["search_recovery_query"] = first_effective_query
+        with self.assertRaises(TimeoutError):
+            body["metadata"]["tools"]["search_web"]["callable"](query=model_query)
+
+        first_call_id = "call-retry-1"
+        first_messages = [
+            {"role": "user", "content": user_text},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": first_call_id,
+                        "type": "function",
+                        "function": {
+                            "name": "search_web",
+                            "arguments": native_args(model_query),
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": first_call_id,
+                "content": "request timeout",
+            },
+        ]
+        first_outcomes = guard._audit_search_results(
+            first_messages, user_text, state_key
+        )
+        self.assertEqual(first_outcomes[0]["status"], "TOOL_ERROR")
+        self.assertEqual(state["effective_search_calls"][0]["call_id"], first_call_id)
+
+        # Simulate a later retry of the same model query with its own recovery
+        # query. The earlier failed call must keep its own effective-query record.
+        state["search_recovery_pending"] = True
+        state["search_recovery_query"] = retry_effective_query
+        second_result = body["metadata"]["tools"]["search_web"]["callable"](
+            query=model_query
+        )
+        second_call_id = "call-retry-2"
+        messages = [
+            {"role": "user", "content": user_text},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": first_call_id,
+                        "type": "function",
+                        "function": {
+                            "name": "search_web",
+                            "arguments": native_args(model_query),
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": first_call_id,
+                "content": "request timeout",
+            },
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": second_call_id,
+                        "type": "function",
+                        "function": {
+                            "name": "search_web",
+                            "arguments": native_args(model_query),
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": second_call_id,
+                "content": second_result,
+            },
+        ]
+
+        outcomes = guard._audit_search_results(messages, user_text, state_key)
+
+        records = state["effective_search_calls"]
+        self.assertEqual(observed_queries, [first_effective_query, retry_effective_query])
+        self.assertEqual(
+            [(record["call_id"], record["effective_query"]) for record in records],
+            [
+                (first_call_id, first_effective_query),
+                (second_call_id, retry_effective_query),
+            ],
+        )
+        self.assertEqual(len(outcomes), 1)
+        self.assertEqual(outcomes[0]["call_id"], second_call_id)
+        self.assertEqual(len(state["ok_urls"]), 1)
+        self.assertEqual(len(state["suspect_urls"]), 1)
+
     def test_unmatched_model_query_does_not_consume_an_effective_record(self):
         records = [
             {
