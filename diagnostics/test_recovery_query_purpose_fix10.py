@@ -10,7 +10,7 @@ from pathlib import Path
 import unittest
 
 
-SOURCE = Path(__file__).with_name("guard0.8.26-fix9-effective-query-fetch-gate.py")
+SOURCE = Path(__file__).with_name("guard0.8.26-fix10-recovery-query-purpose.py")
 SPEC = importlib.util.spec_from_file_location("searchguard_fix10_recovery_purpose_baseline", SOURCE)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"Could not load candidate source: {SOURCE}")
