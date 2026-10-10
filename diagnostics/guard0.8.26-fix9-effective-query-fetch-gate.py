@@ -1482,52 +1482,82 @@ def _extract_search_query_argument(args) -> Optional[str]:
 
 
 def _associate_effective_search_queries(calls, records) -> dict:
-    """Associate recorded callable invocations with native search call IDs.
+    """Associate effective queries only when the match is unambiguous.
 
-    Records are written immediately before the underlying search callable is
-    invoked, preserving model/effective query pairs. Matching uses the exact
-    model query and consumes each unassigned record once. A record already
-    associated with a call ID is stable across repeated audit passes.
+    Existing call-ID associations remain stable across repeated audit passes.
+    New associations are made by exact model-query match. For duplicate model
+    queries, pair records in order only when the number of unassigned calls
+    equals the number of unassigned records. If counts differ, the callable
+    invocation cannot be mapped safely to one of the duplicate native calls;
+    leave those calls unassociated and let result auditing use model-query
+    fallback rather than risking a wrong effective-query assignment.
     """
     associated = {}
 
     if not isinstance(records, list):
         return associated
 
+    parsed_calls = []
     for call_id, raw_args in calls:
         cid = str(call_id)
         model_query = _extract_search_query_argument(raw_args)
+        if isinstance(model_query, str):
+            parsed_calls.append((cid, model_query))
 
-        if not isinstance(model_query, str):
+    # Keep associations already established on an earlier audit pass.
+    claimed_call_ids = set()
+    effective_by_call_id = {}
+    for candidate in records:
+        if not isinstance(candidate, dict):
+            continue
+        raw_call_id = candidate.get("call_id")
+        if raw_call_id is None:
             continue
 
-        record = None
+        cid = str(raw_call_id)
+        claimed_call_ids.add(cid)
+        effective_query = candidate.get("effective_query")
+        if isinstance(effective_query, str) and effective_query.strip():
+            effective_by_call_id[cid] = effective_query
 
-        for candidate in records:
-            if not isinstance(candidate, dict):
-                continue
-            if candidate.get("call_id") == cid:
-                record = candidate
-                break
+    for cid, _model_query in parsed_calls:
+        if cid in effective_by_call_id:
+            associated[cid] = effective_by_call_id[cid]
 
-        if record is None:
-            for candidate in records:
-                if not isinstance(candidate, dict):
-                    continue
-                if candidate.get("call_id") is not None:
-                    continue
-                if candidate.get("model_query") != model_query:
-                    continue
+    pending_calls_by_query = {}
+    for cid, model_query in parsed_calls:
+        if cid in claimed_call_ids:
+            continue
+        pending_calls_by_query.setdefault(model_query, []).append(cid)
 
-                candidate["call_id"] = cid
-                record = candidate
-                break
+    pending_records_by_query = {}
+    for candidate in records:
+        if not isinstance(candidate, dict):
+            continue
+        if candidate.get("call_id") is not None:
+            continue
 
-        if record is not None and isinstance(record.get("effective_query"), str):
+        model_query = candidate.get("model_query")
+        effective_query = candidate.get("effective_query")
+        if not isinstance(model_query, str):
+            continue
+        if not isinstance(effective_query, str) or not effective_query.strip():
+            continue
+
+        pending_records_by_query.setdefault(model_query, []).append(candidate)
+
+    for model_query, pending_call_ids in pending_calls_by_query.items():
+        pending_records = pending_records_by_query.get(model_query, [])
+        if not pending_records or len(pending_call_ids) != len(pending_records):
+            # In particular, do not attach one recorded invocation to the
+            # first of multiple duplicate calls: it may belong to a later call.
+            continue
+
+        for cid, record in zip(pending_call_ids, pending_records):
+            record["call_id"] = cid
             associated[cid] = record["effective_query"]
 
     return associated
-
 
 def _query_entity_audit_flags(
     entity: str,
