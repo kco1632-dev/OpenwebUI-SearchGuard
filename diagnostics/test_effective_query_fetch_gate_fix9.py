@@ -41,14 +41,44 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         observed_queries = []
         search_results = [
             {
-                "title": "カティサークの味や種類",
-                "link": "https://example.test/cutty-sark",
+                "title": "カティサークの味や種類。美味しい飲み方もご紹介",
+                "link": "https://sakidori.co/article/690659",
                 "snippet": "カティサーク・オリジナルはライトな味わいです。",
             },
             {
-                "title": "運送会社の事業所案内",
-                "link": "https://example.test/company",
+                "title": "カティサークの特徴と楽しみ方",
+                "link": "https://gohobi.co/whisky/961/",
+                "snippet": "カティサークはスコッチウイスキーの人気銘柄です。",
+            },
+            {
+                "title": "カティサークというお酒",
+                "link": "https://note.com/example/cutty-sark",
+                "snippet": "カティサークについて価格や味わいを紹介します。",
+            },
+            {
+                "title": "カティサークの歴史",
+                "link": "https://tanoshiiosake.jp/10265",
+                "snippet": "小説に登場するカティサークについて解説します。",
+            },
+            {
+                "title": "カティサークの誕生と歴史",
+                "link": "https://www.barrel365.com/n2505031/",
+                "snippet": "カティサークが誕生したのは1923年です。",
+            },
+            {
+                "title": "Ballantine's Scotch whisky",
+                "link": "https://it.pinterest.com/pin/example",
+                "snippet": "言わずと知れたスコッチウイスキーの名門、バランタイン。",
+            },
+            {
+                "title": "事業所案内｜企業情報",
+                "link": "https://www.sbs-sokuhaisupport.co.jp/sbssksp/company/office/",
                 "snippet": "企業情報と事業所一覧です。",
+            },
+            {
+                "title": "会社概要｜企業情報",
+                "link": "https://www.sbs-sokuhaisupport.co.jp/sbssksp/company/outline/",
+                "snippet": "会社概要と企業情報をご覧いただけます。",
             },
         ]
 
@@ -68,7 +98,7 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         guard._wrap_search_callable(body, user_text, state_key)
         result_json = body["metadata"]["tools"]["search_web"]["callable"](
             query=MODEL_RECOVERY_QUERY,
-            count=2,
+            count=8,
         )
 
         self.assertEqual(observed_queries, [EFFECTIVE_RECOVERY_QUERY])
@@ -106,12 +136,14 @@ class EffectiveQueryFetchGateFix9Tests(unittest.TestCase):
         self.assertEqual(len(outcomes), 1)
         self.assertTrue(outcomes[0]["found"])
         self.assertEqual(record["call_id"], call_id)
+        self.assertEqual(len(state["ok_urls"]), 5)
+        self.assertEqual(len(state["suspect_urls"]), 3)
         self.assertIn(
-            guard._normalize_url("https://example.test/cutty-sark"),
+            guard._normalize_url("https://sakidori.co/article/690659"),
             state["ok_urls"],
         )
         self.assertIn(
-            guard._normalize_url("https://example.test/company"),
+            guard._normalize_url("https://www.sbs-sokuhaisupport.co.jp/sbssksp/company/office/"),
             state["suspect_urls"],
             "An unrelated result must become SUSPECT when the effective query targets the entity.",
         )
