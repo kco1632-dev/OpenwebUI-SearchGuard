@@ -3838,6 +3838,42 @@ missing and that further research is possible if the user asks for it
             genitive_heads.sort(key=lambda item: item[0])
             return genitive_heads[-1][1]
 
+        # Lowercase multiword names are not normally protected tokens. If a
+        # dotted version immediately follows a lowercase phrase, prefer that
+        # local subject-shaped phrase over the version prefix (for example,
+        # "open webui v0.11.4"). This is syntax-based and adds no name dictionary.
+        version_pattern = re.compile(
+            r"(?<![A-Za-z0-9])v?\d+(?:\.\d+){1,}(?![A-Za-z0-9])",
+            re.IGNORECASE,
+        )
+        for version_match in version_pattern.finditer(masked):
+            prefix = masked[:version_match.start()].rstrip()
+            word_matches = list(
+                re.finditer(r"[A-Za-z][A-Za-z0-9-]*", prefix)
+            )
+            trailing_words = []
+            cursor = len(prefix)
+
+            for word_match in reversed(word_matches):
+                gap = prefix[word_match.end():cursor]
+                if gap and not gap.isspace():
+                    break
+
+                word = word_match.group(0)
+                if word != word.lower() or word in _LATIN_STOP:
+                    break
+
+                trailing_words.append(word_match)
+                cursor = word_match.start()
+
+            if len(trailing_words) >= 2:
+                trailing_words.reverse()
+                candidate = prefix[
+                    trailing_words[0].start():trailing_words[-1].end()
+                ].strip()
+                if candidate:
+                    return candidate
+
         # Use the less ambiguous TitleCase + mixed-case pattern first.
         # This lets "Open WebUI" win inside "Find Open WebUI ..." rather than
         # accidentally treating the imperative "Find" as part of the subject.
