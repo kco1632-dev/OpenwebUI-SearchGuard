@@ -3838,14 +3838,10 @@ missing and that further research is possible if the user asks for it
             genitive_heads.sort(key=lambda item: item[0])
             return genitive_heads[-1][1]
 
-        # If syntax does not identify a subject, prefer a contiguous Latin
-        # multi-token name span over selecting only its first token. A simple
-        # TitleCase token may begin a phrase; the next token may be TitleCase
-        # (for example, "New York") or mixed-case (for example, "WebUI").
-        # Stop after a mixed-case token so a following platform/context term
-        # such as "GitHub" is not automatically appended. A version token or
-        # punctuation also breaks the span. This is typography-only and adds
-        # no product, brand, or domain dictionary.
+        # Use the less ambiguous TitleCase + mixed-case pattern first.
+        # This lets "Open WebUI" win inside "Find Open WebUI ..." rather than
+        # accidentally treating the imperative "Find" as part of the subject.
+        # The heuristic is typography-based and adds no name/domain dictionary.
         def title_case_name_token(value: str) -> bool:
             return bool(re.fullmatch(r"[A-Z][a-z]+(?:-[A-Z][a-z]+)*", value))
 
@@ -3857,6 +3853,17 @@ missing and that further research is possible if the user asks for it
                 and not value.isupper()
             )
 
+        for index, current in enumerate(occurrences):
+            if not mixed_case_name_token(current[2]) or index == 0:
+                continue
+            previous = occurrences[index - 1]
+            gap = masked[previous[1]:current[0]]
+            if title_case_name_token(previous[2]) and gap and gap.isspace():
+                return masked[previous[0]:current[1]].strip()
+
+        # Without the mixed-case pattern, a contiguous TitleCase run remains
+        # a conservative fallback (for example, "New York"). A version token
+        # or punctuation breaks a span; never merge across it.
         index = 0
         while index < len(occurrences):
             first = occurrences[index]
