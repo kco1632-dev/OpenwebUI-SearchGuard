@@ -4106,7 +4106,7 @@ missing and that further research is possible if the user asks for it
         # protected right-hand anchor exists. Only strip a recognized generic
         # trailing context phrase; do not infer a subject from arbitrary
         # lowercase prose.
-        suffix_text = masked.rstrip(" \\t\\r\\n.,;:!?。！？")
+        suffix_text = masked.rstrip().rstrip(".,;:!?。！？")
         suffix_match = None
         for phrase in _LOWERCASE_SUBJECT_SUFFIX_CONTEXT_PHRASES:
             candidate_match = re.search(
