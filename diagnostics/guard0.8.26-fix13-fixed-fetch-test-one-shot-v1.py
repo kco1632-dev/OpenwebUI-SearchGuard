@@ -2659,8 +2659,23 @@ Fetch selection rules:
         self,
         messages: list,
         limit_note: bool = False,
+        fixed_test_completed: bool = False,
     ) -> list:
-        final_instruction = f"""
+        if fixed_test_completed:
+            final_instruction = f"""
+{FINAL_SYSTEM_MARKER}
+{FETCH_GATE_TEST_COMPLETE_MARKER}
+
+The fixed Fetch Gate test has already completed. The fixed test URL was
+blocked by the gate before the underlying page-fetch callable ran.
+
+No tools are available. Do not call search_web or fetch_url.
+Do not generate native tool calls or <tool_call> XML.
+Respond with exactly this text and nothing else:
+テスト終了
+"""
+        else:
+            final_instruction = f"""
 {FINAL_SYSTEM_MARKER}
 
 The web-search and page-fetch limits for this response have been reached.
@@ -6530,22 +6545,10 @@ missing and that further research is possible if the user asks for it
             if v.flatten_tool_history_in_final_mode or v.final_answer_after_limit:
                 messages = self._flatten_tool_history(messages)
 
-            if fixed_test_completed:
-                completion_note = (
-                    f"{FETCH_GATE_TEST_COMPLETE_MARKER}\\n"
-                    "The fixed Fetch Gate test has completed. Do not call any "
-                    "tool. Respond with exactly this text and nothing else: テスト終了\\n"
-                )
-                messages = self._upsert_block(
-                    messages,
-                    FETCH_GATE_TEST_COMPLETE_MARKER,
-                    None,
-                    completion_note,
-                )
-
             messages = self._apply_final_answer_mode(
                 messages,
                 limit_note=v.final_answer_after_limit and not fixed_test_completed,
+                fixed_test_completed=fixed_test_completed,
             )
 
             body["tool_choice"] = "none"
