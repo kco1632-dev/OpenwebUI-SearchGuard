@@ -3922,8 +3922,59 @@ missing and that further research is possible if the user asks for it
             for entity in protected.get("entities", [])
             if str(entity).strip()
         ]
+        def recover_unanchored_subject() -> Optional[str]:
+            # Last-resort syntax fallback when there are no protected tokens:
+            # recognize only a narrow generic trailing context phrase, then
+            # recover the preceding lowercase multiword span.
+            suffix_text = masked.rstrip().rstrip(".,;:!?。！？")
+            suffix_match = None
+            for phrase in _LOWERCASE_SUBJECT_SUFFIX_CONTEXT_PHRASES:
+                candidate_match = re.search(
+                    r"(?<![A-Za-z0-9])" + re.escape(phrase) + r"$",
+                    suffix_text,
+                    re.IGNORECASE,
+                )
+                if candidate_match:
+                    suffix_match = candidate_match
+                    break
+
+            if not suffix_match:
+                return None
+
+            prefix = suffix_text[:suffix_match.start()].rstrip()
+            word_matches = list(
+                re.finditer(r"[A-Za-z][A-Za-z0-9-]*", prefix)
+            )
+            trailing_words = []
+            cursor = len(prefix)
+
+            for word_match in reversed(word_matches):
+                gap = prefix[word_match.end():cursor]
+                if gap and not gap.isspace():
+                    break
+
+                word = word_match.group(0)
+                if word != word.lower():
+                    break
+                if word in _LATIN_STOP:
+                    break
+                if word in _LOWERCASE_SUBJECT_PREFIX_BOUNDARIES:
+                    break
+
+                trailing_words.append(word_match)
+                cursor = word_match.start()
+
+            if len(trailing_words) < 2:
+                return None
+
+            trailing_words.reverse()
+            candidate = prefix[
+                trailing_words[0].start():trailing_words[-1].end()
+            ].strip()
+            return candidate or None
+
         if not entities:
-            return None
+            return recover_unanchored_subject()
 
         def legacy_first() -> Optional[str]:
             for entity in entities:
@@ -4086,54 +4137,6 @@ missing and that further research is possible if the user asks for it
                     cursor = word_match.start()
                     continue
 
-                if word in _LATIN_STOP:
-                    break
-                if word in _LOWERCASE_SUBJECT_PREFIX_BOUNDARIES:
-                    break
-
-                trailing_words.append(word_match)
-                cursor = word_match.start()
-
-            if len(trailing_words) >= 2:
-                trailing_words.reverse()
-                candidate = prefix[
-                    trailing_words[0].start():trailing_words[-1].end()
-                ].strip()
-                if candidate:
-                    return candidate
-
-        # Last-resort syntax fallback when neither a dotted version nor a
-        # protected right-hand anchor exists. Only strip a recognized generic
-        # trailing context phrase; do not infer a subject from arbitrary
-        # lowercase prose.
-        suffix_text = masked.rstrip().rstrip(".,;:!?。！？")
-        suffix_match = None
-        for phrase in _LOWERCASE_SUBJECT_SUFFIX_CONTEXT_PHRASES:
-            candidate_match = re.search(
-                r"(?<![A-Za-z0-9])" + re.escape(phrase) + r"$",
-                suffix_text,
-                re.IGNORECASE,
-            )
-            if candidate_match:
-                suffix_match = candidate_match
-                break
-
-        if suffix_match:
-            prefix = suffix_text[:suffix_match.start()].rstrip()
-            word_matches = list(
-                re.finditer(r"[A-Za-z][A-Za-z0-9-]*", prefix)
-            )
-            trailing_words = []
-            cursor = len(prefix)
-
-            for word_match in reversed(word_matches):
-                gap = prefix[word_match.end():cursor]
-                if gap and not gap.isspace():
-                    break
-
-                word = word_match.group(0)
-                if word != word.lower():
-                    break
                 if word in _LATIN_STOP:
                     break
                 if word in _LOWERCASE_SUBJECT_PREFIX_BOUNDARIES:
