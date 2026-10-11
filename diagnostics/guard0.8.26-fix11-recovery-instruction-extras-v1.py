@@ -1153,7 +1153,7 @@ def _pick_recovery_topic_terms(text: str) -> list:
 
 
 _OUTPUT_FORMAT_QUOTE_SUFFIX_RE = re.compile(
-    r"^\\s*(?:と|で)\\s*(?:だけ\\s*)?"
+    r"^\s*(?:と|で)\s*(?:だけ\s*)?"
     r"(?:答え|回答|返答|記載|表記|出力|表示|返し|応答|記入|述べ|言っ|言い|書き|書い|伝え|明記)"
 )
 
