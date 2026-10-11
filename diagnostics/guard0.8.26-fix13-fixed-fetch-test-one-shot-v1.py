@@ -6536,8 +6536,10 @@ missing and that further research is possible if the user asks for it
                 if len(self._final_fallback) > 100:
                     self._final_fallback.clear()
 
-                    self._final_fallback[state_key] = self._build_final_fallback(
-                        messages
+                    self._final_fallback[state_key] = (
+                        "テスト終了"
+                        if fixed_test_completed
+                        else self._build_final_fallback(messages)
                     )
 
             # 0.8.22: the limit closes the tools only; the retrieved
