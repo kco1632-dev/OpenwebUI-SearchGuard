@@ -758,7 +758,6 @@ _LOWERCASE_SUBJECT_PREFIX_BOUNDARIES = {
     "fix",
     "debug",
     "setup",
-    "openai",
 }
 
 
