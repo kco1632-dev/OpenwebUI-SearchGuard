@@ -6547,6 +6547,16 @@ missing and that further research is possible if the user asks for it
             if v.flatten_tool_history_in_final_mode or v.final_answer_after_limit:
                 messages = self._flatten_tool_history(messages)
 
+            if fixed_test_completed:
+                # Remove the prior instruction to call fetch_url once; the
+                # completion hop must not retain a contradictory test prompt.
+                messages = self._upsert_block(
+                    messages,
+                    FETCH_GATE_TEST_SYSTEM_MARKER,
+                    None,
+                    None,
+                )
+
             messages = self._apply_final_answer_mode(
                 messages,
                 limit_note=v.final_answer_after_limit and not fixed_test_completed,
