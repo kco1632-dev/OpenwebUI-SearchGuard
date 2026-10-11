@@ -764,14 +764,14 @@ def _entity_found_in_evidence(entity: str, evidence: str) -> bool:
             return False
 
         if re.fullmatch(
-            r"[A-Za-z0-9]+(?:[\\s._/:+-]+[A-Za-z0-9]+)*",
+            r"[A-Za-z0-9]+(?:[\s._/:+-]+[A-Za-z0-9]+)*",
             entity_text,
         ):
             words = re.findall(r"[A-Za-z0-9]+", entity_text)
             if words:
                 pattern = (
                     r"(?<![A-Za-z0-9])"
-                    + r"[\\W_]*".join(re.escape(word) for word in words)
+                    + r"[\W_]*".join(re.escape(word) for word in words)
                     + r"(?![A-Za-z0-9])"
                 )
                 return re.search(pattern, evidence_text, re.IGNORECASE) is not None
