@@ -4217,7 +4217,7 @@ missing and that further research is possible if the user asks for it
         model_subject_pattern = re.compile(
             r"(?<![A-Za-z0-9])("
             + model_name_token
-            + r")\\s+(\\d{2,4})\\s+("
+            + r")\s+(\d{2,4})\s+("
             + model_name_token
             + r")(?![A-Za-z0-9])"
         )
