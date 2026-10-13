@@ -23,7 +23,6 @@ description: >
       - temporary fetch suspension after duplicate fetch attempts
 
 0.8.26-fix30-main-entity-japanese-punctuation-v1 change:
-0.8.26-fix30-main-entity-japanese-punctuation-v1 change:
     Extend the narrow Japanese comparison patterns to tolerate punctuation
     around supported wording (for example, "AとB、どちら" and "AとBは、
     どちら") and recognize "何が違います" as explicit comparison wording.
@@ -31,6 +30,7 @@ description: >
     and left-side aggregate/recovery target. Do not rewrite user text or add
     a general Japanese grammar parser.
 
+0.8.26-fix29-main-entity-japanese-left-subject-v1 change:
     For narrow, explicit Japanese comparison forms beginning with "AとB" and
     ending with 比較 / 比べ / 違い / 差 / どちら / どっち / 対決, select the
     left-side subject in a local selection view before the ordinary
@@ -4485,7 +4485,7 @@ missing and that further research is possible if the user asks for it
             # etc. This only adds B for per-result URL matching; aggregate
             # audit and recovery remain anchored to the selected left target.
             japanese_comparison_match = re.match(
-                r"^\s*(.+?)と(.+?)(?:を比較|を比べ|の違い|の差|はどちら|はどっち|対決)",
+                r"^\s*(.+?)と(.+?)(?:\s*[、，,]\s*)?(?:を比較|を比べ|の違い|の差|は\s*[、，,]?\s*どちら|は\s*[、，,]?\s*どっち|どちら|どっち|何が違(?:います|う|うの)?|対決)",
                 normalized_compare_text,
             )
             if japanese_comparison_match:
