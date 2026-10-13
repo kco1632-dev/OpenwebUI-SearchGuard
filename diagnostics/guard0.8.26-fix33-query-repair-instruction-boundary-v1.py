@@ -27,9 +27,12 @@ description: >
     recognized by _find_japanese_comparison_match(). This keeps leading prompt
     instructions (for example, Web検索してください) and unrelated preamble
     terms out of prepended search terms, and limits category-prefixed Japanese
-    comparisons to the two named subjects. The source user text and model query
-    are not rewritten; no romanization, quota, Fetch policy, audit semantics,
-    or tool-loop changes are introduced.
+    comparisons to the two named subjects. When checking whether a candidate
+    Japanese-script term is already in the model query, require its exact
+    normalized substring so an internal-space variant cannot suppress adding
+    the intact user term. The original model query is not rewritten and no
+    romanization, quota, Fetch policy, audit semantics, or tool-loop changes
+    are introduced.
 
 0.8.26-fix32-main-entity-japanese-prefixed-instruction-v1 change:
     Resolve narrow Japanese comparison questions after an instruction preamble.
@@ -1891,7 +1894,16 @@ def repair_query(
         missing = []
 
         for ent in _select_query_candidates(user_text, protected):
-            if _norm(ent) not in qn_norm:
+            normalized_entity = _nfkc(ent).strip()
+            contains_japanese = bool(
+                re.search(r"[\u3040-\u30ff\u3400-\u9fff]", normalized_entity)
+            )
+            if contains_japanese:
+                present = normalized_entity in q
+            else:
+                present = _norm(ent) in qn_norm
+
+            if not present:
                 missing.append(ent)
 
         for n in protected["numerics"]:
