@@ -1592,6 +1592,32 @@ def _select_query_candidates(user_text, protected):
     if comparison_match is not None:
         text = comparison_match.string
 
+        # Keep only the most specific protected term found in each side of
+        # this recognized comparison. For example, when the left side is
+        # "スコッチウイスキーのカティサーク", the named subject is
+        # "カティサーク", not the category phrase.
+        selected_subjects = []
+        source_entities = protected.get("entities", [])
+        for subject in (
+            comparison_match.group(1).strip(),
+            comparison_match.group(2).strip(),
+        ):
+            subject_matches = []
+            for raw_entity in source_entities:
+                entity = _nfkc(str(raw_entity)).strip()
+                position = subject.rfind(entity) if entity else -1
+                if position >= 0:
+                    subject_matches.append((position, len(entity), entity))
+
+            if subject_matches:
+                selected_subjects.append(max(subject_matches)[2])
+            elif subject:
+                selected_subjects.append(subject)
+
+        if selected_subjects:
+            protected = dict(protected)
+            protected["entities"] = selected_subjects
+
     def mask_quotes(value, examples_only=False):
         chars = list(value)
 
