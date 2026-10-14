@@ -4,6 +4,8 @@ This folder versions the **standalone Bonsai2 web-search system prompt** kept at
 
 ## Versioning policy
 
+See the [prompt versioning workflow](PROMPT-VERSIONING-WORKFLOW.md) for the required process for snapshots, candidates, user-confirmed deployment status, behavioral evaluation, and new-session handoff.
+
 - Keep the root file as the working repository prompt. Do not silently replace it when drafting an experiment.
 - Every versioned snapshot is immutable. Create a new version file for every change; never edit an old snapshot in place.
 - Keep untested drafts under `candidates/` and label them as candidates. A candidate is not the active prompt.
