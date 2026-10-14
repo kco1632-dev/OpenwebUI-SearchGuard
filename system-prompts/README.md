@@ -22,7 +22,18 @@ See the [prompt versioning workflow](PROMPT-VERSIONING-WORKFLOW.md) for the requ
 - **Snapshot:** [versions/v1.0.0/Bonsai2-WebSearch-SystemPrompt.txt](versions/v1.0.0/Bonsai2-WebSearch-SystemPrompt.txt)
 - **Historical note:** The existing GitHub path history shows the prompt file was first added on 2026-10-06 in commit `2afdf5d155589e6baed3c8d2feab92783b85d1e9`. No earlier version of this file is present in this repository's recorded path history. Git history of the root file remains preserved.
 
-## Candidate
+## Candidates
+
+### v1.0.1-rc1
+
+- **Status:** Candidate only; not deployed or live-tested.
+- **File:** [candidates/v1.0.1-rc1/Bonsai2-WebSearch-SystemPrompt.txt](candidates/v1.0.1-rc1/Bonsai2-WebSearch-SystemPrompt.txt)
+- **Source:** User-confirmed B1 prompt variant on `experiment/compare-fetch-balance-prompt-v1`, blob SHA `af43d4bcabd044b13b79eb2109a35107b79899fb`.
+- **Change:** Removes the fixed numeric limit of 2 `search_web` calls and 2 `fetch_url` calls from rule 26; replaces it with efficient-budgeting guidance that defers to available tools and enforced limits.
+- **Scope:** All other B1 text, including the comparison-fetch guidance in rule 10, is preserved. The active `[Bonsai2 Search Query Rules v0.3]` block remains a separate layer.
+- **Promotion gate:** Install only after review; then verify the exact text and perform a bounded Mac Pro comparison test. Do not treat candidate creation as deployment or proof of improved results.
+
+### v1.1.0-rc1
 
 - **Version:** `v1.1.0-rc1`
 - **Status:** Draft only; not deployed and not tested.
@@ -36,6 +47,7 @@ See the [prompt versioning workflow](PROMPT-VERSIONING-WORKFLOW.md) for the requ
 | Version | Date | Status | Summary |
 |---|---|---|---|
 | v1.0.0 | 2026-10-14 | Repository baseline; live status unverified | Exact snapshot of the existing root prompt. |
+| v1.0.1-rc1 | 2026-10-14 | Candidate only | Based on the user-confirmed B1 prompt; removes fixed search/fetch counts from rule 26. |
 | v1.1.0-rc1 | 2026-10-14 | Candidate only | Adds comparison evidence balancing and exact search-result URL rules. |
 
 ## User-confirmed active system-prompt block
