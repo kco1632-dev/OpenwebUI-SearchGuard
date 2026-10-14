@@ -36,3 +36,16 @@ This folder versions the **standalone Bonsai2 web-search system prompt** kept at
 | v1.0.0 | 2026-10-14 | Repository baseline; live status unverified | Exact snapshot of the existing root prompt. |
 | v1.1.0-rc1 | 2026-10-14 | Candidate only | Adds comparison evidence balancing and exact search-result URL rules. |
 
+## User-confirmed active system-prompt block
+
+The user confirmed on **2026-10-14** that the following rule block has been implemented in the active Open WebUI system prompt and matches the text supplied in the conversation:
+
+- **Block version:** `[Bonsai2 Search Query Rules v0.3]`
+- **Status:** User-confirmed implemented; the running prompt text was not independently read back from the application by this GitHub operation.
+- **Snapshot:** [system-prompts/search-query-rules/v0.3/Bonsai2-Search-Query-Rules.txt](search-query-rules/v0.3/Bonsai2-Search-Query-Rules.txt)
+- **Record:** [system-prompts/search-query-rules/v0.3/README.md](search-query-rules/v0.3/README.md)
+
+This prompt block is tracked separately from the standalone root prompt and from rules injected dynamically by SearchGuard Function code. Do not infer that those different layers have identical text or versions.
+
+Subsequent changes should use a new immutable versioned file and update `VERSION_HISTORY.md`. Keep the user's implementation confirmation distinct from independent runtime verification.
+
