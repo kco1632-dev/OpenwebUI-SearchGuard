@@ -18,3 +18,8 @@
 - Immutable snapshot: `system-prompts/search-query-rules/v0.3/Bonsai2-Search-Query-Rules.txt`.
 - The GitHub operation records the user's confirmation; it did not independently inspect the running Open WebUI prompt.
 - This is a separate prompt layer from the standalone `Bonsai2-WebSearch-SystemPrompt.txt` and from SearchGuard Function-injected rules.
+
+### v0.3 live test note — 2026-10-14
+- First supplied live test after user-confirmed implementation: Think=OFF comparison of Cutty Sark and Ballantine's.
+- Outcome: no supported, balanced final answer in the supplied trace; irrelevant first search, second search had a page naming both brands, one successful fetch with incomplete coverage due truncation, one `suspect-search-result` block, one duplicate fetch skip, and raw textual pseudo tool-call requests after the displayed tool budget.
+- Behavioral improvement is not established. See the v0.3 README for summary and the private dated handoff record for the full evidence.
