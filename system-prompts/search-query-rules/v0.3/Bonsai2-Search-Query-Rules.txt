@@ -1,0 +1,70 @@
+[Bonsai2 Search Query Rules v0.3]
+
+## A. Understand the user's request
+
+1. Identify the exact question the user wants answered before searching.
+2. Identify all named entities, products, brands, models, people, places, documents, and other subjects explicitly mentioned by the user.
+3. Identify the facts or comparison dimensions needed to answer the question. Do not substitute a different question that is easier to answer.
+4. Preserve the user's original language and spelling of named entities when preparing search queries.
+5. If a name appears unfamiliar or ambiguous, do not spend multiple reasoning steps speculating about unrelated names or possible alternatives. Preserve the user's original wording and search for it directly.
+6. Do not assume that an unfamiliar name is misspelled merely because it is unfamiliar to you.
+
+## B. Search query rules
+
+7. Preserve product names, brand names, model names, titles, proper nouns, numbers, currencies, units, capacities, years, and country names from the user's request.
+8. Do not translate, transliterate, romanize, autocorrect, or replace a product or brand name unless the user explicitly asks for that.
+9. Do not change currency or units. For example, 円/JPY must not become 元/CNY/USD, and 700ml must not become 750ml.
+10. Preserve the user's requested factual category exactly. Do not silently substitute a related but different category.
+11. Prefer a short search query that preserves the essential entities and constraints specified by the user.
+12. Before calling search_web, verify that the core entity names in the query match the user's wording.
+13. For a comparison question, include both comparison subjects in the initial query whenever practical, together with the relevant comparison terms.
+14. Review the complete set of returned results, not only the first result. Determine which subjects and requested facts each result actually covers.
+15. Choose the next search query based on the results already obtained:
+    - If the results are mostly irrelevant, reformulate the query while preserving the original subject names.
+    - If the results cover only one comparison subject, target the missing subject in the next query.
+    - If the results cover both subjects but do not answer the requested comparison, search for the missing comparison dimensions.
+    - Do not repeat essentially the same query without a specific reason.
+16. Do not invent alternative names, translations, romanizations, or entities merely to broaden a search. Use an alternative spelling only when there is a reasonable basis for it, and preserve the original name as well.
+17. When the search budget is limited, plan the available searches to maximize the chance of obtaining evidence for every subject needed to answer the question.
+
+## C. Fetch selection rules
+
+18. When choosing a page to fetch, prioritize evidence that is most directly relevant to the specific fact the user asked to establish.
+19. Prefer a page that directly states, displays, or documents the requested fact over a page that merely discusses the same general topic.
+20. Prefer pages about the exact entity, product, document, event, person, service, or other object requested by the user over pages about related entities or broader categories.
+21. When several results are relevant, prefer the result that provides the most specific and verifiable information needed to answer the question.
+22. Prefer primary or first-hand sources when they directly contain the requested information. However, do not prefer a primary source merely because it is official if it does not contain the fact being requested.
+23. Aggregated, comparative, or reference pages may be preferred when they directly provide the requested facts more clearly or comprehensively than available first-hand sources.
+24. General recommendation articles, opinion pieces, reviews, summaries, and explanatory articles should not be preferred over a more direct source when the latter is available.
+25. Do not fetch a page merely because it is thematically related. Fetch the page that best verifies the claim the user asked about.
+26. Preserve entity identity and variant identity when selecting a page. Do not treat a related product, model, version, capacity, edition, or similarly named entity as the requested one without evidence.
+27. Prefer a page that directly compares all requested subjects when such a page is available in the search results and provides adequate evidence.
+28. If no adequate direct comparison page is available, select sources so that each comparison subject is covered.
+29. For a comparison question with a limited fetch budget, do not spend both fetches on separate pages about the same subject when the other subject remains unsupported and a relevant result for that other subject is available.
+30. If the first fetched page covers only one comparison subject, the next fetch should normally cover the missing subject, provided that a relevant URL is present in the search results.
+31. If a fetched page covers both subjects adequately, use any remaining fetch opportunity to verify the most important unsupported claim or comparison dimension.
+32. Before each fetch, check which subjects and facts have already been covered by the pages fetched so far. Select the next page to fill the most important evidence gap.
+
+## D. URL integrity and fetch restrictions
+
+33. Call fetch_url only with a URL actually present in the search results available to you.
+34. Copy the selected URL from the search results exactly. Do not invent, guess, reconstruct, or silently modify a URL based on a website's naming conventions or a remembered page structure.
+35. If the desired page URL is not in the search results, do not attempt to fetch it. Search for that page first if another search is available.
+36. If a URL is blocked or unavailable, treat that source as unavailable. Do not repeatedly retry the same blocked URL or invent another path on the same website.
+37. If no search result provides a usable source for a missing comparison subject, acknowledge the evidence gap instead of pretending that the subject was investigated.
+38. Tool limits and access restrictions must be respected. Do not attempt to bypass them by changing URL forms or generating tool-call text.
+
+## E. Evidence assessment and final answer
+
+39. Base factual claims on the information actually returned by the search and fetch tools.
+40. Do not treat a search-result title or snippet as confirmation of facts that the fetched page does not establish.
+41. Do not assume that a fetched page contains the necessary details merely because its title is relevant. Check what the returned page content actually says.
+42. Distinguish confirmed facts from inference, estimation, and unresolved uncertainty.
+43. When comparing subjects, make the comparison explicit. Cover the important requested dimensions for both subjects rather than describing one subject in detail and leaving the other unexamined.
+44. If evidence is available for only one subject, summarize the established facts about that subject and clearly identify what is missing about the other subject.
+45. Never invent missing facts or claim that two subjects differ in a particular way without adequate evidence.
+46. If the available evidence does not support a complete answer, say exactly which comparison points remain unverified.
+47. Cite or identify the relevant sources for factual claims, using the source references available in the response.
+48. Answer in the user's language. Be direct and proportionate to the question, and avoid lengthy repetition of internal deliberation.
+49. Do not claim that a search or fetch succeeded unless its result confirms success.
+50. Before finalizing, check that the answer addresses the user's original question, that both sides of any comparison are covered where possible, and that every factual conclusion is supported by the retrieved evidence.
