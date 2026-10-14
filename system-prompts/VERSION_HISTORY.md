@@ -29,3 +29,11 @@
 - The final answer was normal prose and transparently disclosed missing Ballantine evidence; no textual pseudo-tool-call sequence was observed in the supplied trace.
 - Still no evidence of a complete, balanced comparison. The OFF/XHIGH outcomes are single runs and must not be treated as a controlled measure of Think-mode effect.
 - Detailed trace: https://github.com/kco1632-dev/for-chatgpt/blob/main/records/2026-10-14-post-v03-live-thinkxhigh-comparison-test.md.
+
+## v1.0.1-rc1 — 2026-10-14
+- Candidate only; not installed or live-tested.
+- Source: user-confirmed B1 prompt variant on `experiment/compare-fetch-balance-prompt-v1`, blob SHA `af43d4bcabd044b13b79eb2109a35107b79899fb`.
+- Changes only rule 26: removes the fixed 2-search / 2-fetch quotas from the system prompt and leaves actual call limits to the available tools and enforced controls.
+- Preserves all other B1 content. The separate user-confirmed Search Query Rules v0.3 block is unchanged.
+- Does not change Function code, Valve values, service configuration, or deployed prompts.
+- Candidate file: `system-prompts/candidates/v1.0.1-rc1/Bonsai2-WebSearch-SystemPrompt.txt`.
