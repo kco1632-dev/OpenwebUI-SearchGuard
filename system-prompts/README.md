@@ -51,3 +51,6 @@ This prompt block is tracked separately from the standalone root prompt and from
 
 Subsequent changes should use a new immutable versioned file and update `VERSION_HISTORY.md`. Keep the user's implementation confirmation distinct from independent runtime verification.
 
+## v0.3 behavior evaluation
+
+The user-confirmed `[Bonsai2 Search Query Rules v0.3]` has one recorded Think=OFF live test (2026-10-14). The supplied trace did not contain a completed, balanced comparison answer. This is recorded as a failure/inconclusive end-to-end outcome, not evidence of improvement. See [v0.3 record](search-query-rules/v0.3/README.md) and the linked private detailed trace for exact URLs and guard decisions.
