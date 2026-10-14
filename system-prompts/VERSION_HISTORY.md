@@ -23,3 +23,9 @@
 - First supplied live test after user-confirmed implementation: Think=OFF comparison of Cutty Sark and Ballantine's.
 - Outcome: no supported, balanced final answer in the supplied trace; irrelevant first search, second search had a page naming both brands, one successful fetch with incomplete coverage due truncation, one `suspect-search-result` block, one duplicate fetch skip, and raw textual pseudo tool-call requests after the displayed tool budget.
 - Behavioral improvement is not established. See the v0.3 README for summary and the private dated handoff record for the full evidence.
+
+### Second live test of Search Query Rules v0.3 — Think=XHIGH — 2026-10-14
+- Search 2 included a direct comparative tasting result for Ballantine, Johnnie Walker Red and Cutty Sark, but both Fetch calls instead targeted Cutty Sark-specific pages.
+- The final answer was normal prose and transparently disclosed missing Ballantine evidence; no textual pseudo-tool-call sequence was observed in the supplied trace.
+- Still no evidence of a complete, balanced comparison. The OFF/XHIGH outcomes are single runs and must not be treated as a controlled measure of Think-mode effect.
+- Detailed trace: https://github.com/kco1632-dev/for-chatgpt/blob/main/records/2026-10-14-post-v03-live-thinkxhigh-comparison-test.md.
