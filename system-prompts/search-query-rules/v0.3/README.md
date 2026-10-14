@@ -18,3 +18,13 @@
 - **Interpretation:** not proof that v0.3 improved the end-to-end answer. One unresolved hypothesis is a mismatch between comparison-side coverage instructions and Fetch Gate's single-entity relevance decision. A separate unresolved issue is raw textual tool-call output after budget limits.
 - Detailed trace: [private handoff record](https://github.com/kco1632-dev/for-chatgpt/blob/main/records/2026-10-14-post-v03-live-thinkoff-comparison-test.md).
 - Do not modify Function/Valves/services based on this record alone; inspect the exact decision path first.
+
+## Second post-implementation live test — Think=XHIGH — 2026-10-14
+
+- **Result:** The model produced a normal Japanese prose answer, unlike the supplied post-v0.3 Think=OFF trace that ended with textual pseudo `<tool_call>` requests. This is an observed difference between the two runs, not proof of causation by Think mode.
+- Search 1 was irrelevant. Search 2 queried Cutty Sark and returned several relevant Cutty Sark sources, including a direct comparative tasting result (`https://brooklynlifehack.hatenablog.com/entry/2021/09/30/223340`) mentioning Ballantine, Johnnie Walker Red and Cutty Sark.
+- Despite that direct-comparison result, the model fetched only two Cutty Sark pages: Asahi Beer and Whiskey-Spirits. The final answer correctly stated that Ballantine's details could not be confirmed from the retrieved evidence.
+- **Assessment:** the main comparison-coverage failure persists. The supplied XHIGH trace had no Fetch Gate block, unlike the prior OFF trace, so do not ascribe this run's failure to the gate. The model's actual source-selection decision did not use the available comparative result.
+- No overall improvement from v0.3 is demonstrated; neither one-run test produced a properly supported comparison of both sides.
+- Full trace and side-by-side comparison: [private dated record](https://github.com/kco1632-dev/for-chatgpt/blob/main/records/2026-10-14-post-v03-live-thinkxhigh-comparison-test.md).
+- No code, Valve, quota, backend or service change was made.
