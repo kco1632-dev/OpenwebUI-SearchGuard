@@ -41,6 +41,7 @@ See the [prompt versioning workflow](PROMPT-VERSIONING-WORKFLOW.md) for the requ
 - **Changes:** Rewrites rule 26 so permitted `search_web` and `fetch_url` counts are determined by the active SearchGuard configuration and applicable tool/platform limits; adds rule 45 to respond in the user's language unless explicitly instructed otherwise.
 - **Preserved:** Other prompt text, including the comparison-fetch guidance in rule 10, is unchanged from v1.0.1-rc1.
 - **Scope:** Standalone Bonsai2 web-search system prompt only. No Function code, Valve values, service configuration, or runtime prompt field was changed.
+- **Record:** [Dated change and verification record](../records/2026-10-25-system-prompt-v1.0.1-rc2.md).
 - **Next step:** Review the candidate, compare its exact text before any deliberate installation, and keep any behavior test separate from text-match verification.
 
 ### v1.1.0-rc1
