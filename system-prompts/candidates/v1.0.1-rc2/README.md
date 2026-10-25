@@ -17,3 +17,7 @@
 - Rule 45 did not exist in the source and was appended as the new rule.
 - No Function source, Valve values, service configuration, or runtime prompt field was changed.
 - Candidate text should be reviewed and compared with the intended Open WebUI prompt field before any deployment. Runtime behavior remains unverified.
+
+## Change record
+
+See the [dated candidate record](../../../records/2026-10-25-system-prompt-v1.0.1-rc2.md) for source SHA, content verification, and scope boundaries.
