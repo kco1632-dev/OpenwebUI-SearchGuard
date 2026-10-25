@@ -31,9 +31,17 @@
 - Detailed trace: https://github.com/kco1632-dev/for-chatgpt/blob/main/records/2026-10-14-post-v03-live-thinkxhigh-comparison-test.md.
 
 ## v1.0.1-rc1 — 2026-10-14
-- Candidate only; not installed or live-tested.
 - Source: user-confirmed B1 prompt variant on `experiment/compare-fetch-balance-prompt-v1`, blob SHA `af43d4bcabd044b13b79eb2109a35107b79899fb`.
-- Changes only rule 26: removes the fixed 2-search / 2-fetch quotas from the system prompt and leaves actual call limits to the available tools and enforced controls.
-- Preserves all other B1 content. The separate user-confirmed Search Query Rules v0.3 block is unchanged.
-- Does not change Function code, Valve values, service configuration, or deployed prompts.
-- Candidate file: `system-prompts/candidates/v1.0.1-rc1/Bonsai2-WebSearch-SystemPrompt.txt`.
+- Change: removes the fixed 2-search / 2-fetch quotas from rule 26 and defers to available tools and enforced limits.
+- Later user report confirmed that the text installed in the relevant Open WebUI system-prompt fields matched this candidate. The runtime field was not independently read back by the GitHub operation.
+- Existing live comparison traces did not isolate the effect of this candidate and did not establish a complete, balanced comparison.
+- Candidate/snapshot file: `system-prompts/candidates/v1.0.1-rc1/Bonsai2-WebSearch-SystemPrompt.txt`.
+
+## v1.0.1-rc2 — 2026-10-25
+- Candidate only; not installed by this GitHub update and not live-tested.
+- Based on `v1.0.1-rc1` blob SHA `02548f059d807697a3a820900015587542f6e6c4`.
+- Rule 26 now explicitly says `search_web` and `fetch_url` counts are determined by active SearchGuard configuration and applicable tool/platform limits; no fixed numerical quota is encoded in the prompt.
+- Adds rule 45 requiring response in the user's language unless explicitly instructed otherwise.
+- Other prompt content is preserved from v1.0.1-rc1, including its comparison-fetch guidance in rule 10.
+- No Function code, Valve values, service configuration, or runtime prompt field changed.
+- Candidate file: `system-prompts/candidates/v1.0.1-rc2/Bonsai2-WebSearch-SystemPrompt.txt`.
