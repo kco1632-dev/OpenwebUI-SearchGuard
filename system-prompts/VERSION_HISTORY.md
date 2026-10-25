@@ -45,3 +45,5 @@
 - Other prompt content is preserved from v1.0.1-rc1, including its comparison-fetch guidance in rule 10.
 - No Function code, Valve values, service configuration, or runtime prompt field changed.
 - Candidate file: `system-prompts/candidates/v1.0.1-rc2/Bonsai2-WebSearch-SystemPrompt.txt`.
+
+- Detailed record: [records/2026-10-25-system-prompt-v1.0.1-rc2.md](../records/2026-10-25-system-prompt-v1.0.1-rc2.md).
